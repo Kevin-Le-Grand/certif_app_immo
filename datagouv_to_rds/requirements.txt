@@ -4,11 +4,15 @@ beautifulsoup4==4.12.2
 boto3==1.29.6
 botocore==1.32.6
 bs4==0.0.1
+cachetools==5.3.2
 certifi==2023.11.17
 charset-normalizer==3.3.2
 comm==0.2.0
+cssselect==1.2.0
+cssutils==2.9.0
 debugpy==1.8.0
 decorator==5.1.1
+email-to==0.1.0
 executing==2.0.1
 idna==3.6
 importlib-metadata==6.8.0
@@ -18,6 +22,8 @@ jedi==0.19.1
 jmespath==1.0.1
 jupyter-client==8.6.0
 jupyter-core==5.5.0
+lxml==4.9.3
+Markdown==3.5.1
 matplotlib-inline==0.1.6
 nest-asyncio==1.5.8
 numpy==1.24.4
@@ -27,6 +33,7 @@ parso==0.8.3
 pexpect==4.9.0
 pickleshare==0.7.5
 platformdirs==4.0.0
+premailer==3.10.0
 prompt-toolkit==3.0.41
 psutil==5.9.6
 ptyprocess==0.7.0
