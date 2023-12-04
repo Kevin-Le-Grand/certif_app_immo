@@ -112,6 +112,10 @@ try :
         """
         cursor.execute(query)
 
+        if row["type_local"] == "Maison" :
+            type_local_value = 2
+        else :
+            type_local_value = 1
         query="""
         INSERT IGNORE INTO VENTES (DATE_MUTATION, MONTANT,
                         NUMERO_RUE, RUE , CODE_POSTAL,ID_COMMUNE,
@@ -120,13 +124,13 @@ try :
                         LONGITUDE, LATITUDE )
         VALUES (%s,%s,
                 %s,%s,%s,%s,
-                (SELECT ID_TYPE_BIEN FROM TYPES_BIENS WHERE NAME_TYPE_BIEN=%s),%s,
+                %s,%s,
                 %s,%s,
                 %s,%s)
         """
         cursor.execute(query,(row["date_mutation"],row['valeur_fonciere'],
                     row["adresse_numero"],row["adresse_nom_voie"],row["code_postal"],row["code_commune"],
-                    row["type_local"],row["nombre_pieces_principales"],
+                    type_local_value,row["nombre_pieces_principales"],
                     row["surface_reelle_bati"],row["surface_terrain"],
                     row["longitude"],row["latitude"]))
     db.commit()
