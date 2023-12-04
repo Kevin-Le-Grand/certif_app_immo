@@ -1,5 +1,5 @@
 """
-Nom du Programme: maj_data.py
+Nom du Programme: lambda.py
 
 Auteur: LE GRAND Kevin
 
