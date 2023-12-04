@@ -25,7 +25,7 @@ def select_datas(df : pd.DataFrame) -> pd.DataFrame:
     df = df.loc[(df.nature_mutation=="Vente") & ((df.type_local=="Maison") | (df.type_local=="Appartement")),
                                           ["date_mutation","valeur_fonciere",
                                            "adresse_numero","adresse_nom_voie",
-                                           "code_postal","code_commune"
+                                           "code_postal","code_commune",
                                            "type_local","nombre_pieces_principales",
                                            "surface_reelle_bati","surface_terrain",
                                            "longitude", "latitude"]]
