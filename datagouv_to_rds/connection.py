@@ -12,6 +12,7 @@ Remarques: Le fichier utilise des variables d'environnement pour des raison de s
 
 import pymysql
 import boto3
+from sqlalchemy import create_engine
 
 from email.mime.multipart import MIMEMultipart
 
@@ -52,6 +53,7 @@ password=os.environ['DB_PASSWORD'],
 port=int(os.environ['DB_PORT']))
 cursor= db.cursor()
 
+engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
 #//////////////////////////////////////////////////////////////////////////////
 #                          S3 AWS
 #//////////////////////////////////////////////////////////////////////////////
