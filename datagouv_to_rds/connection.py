@@ -53,7 +53,18 @@ password=os.environ['DB_PASSWORD'],
 port=int(os.environ['DB_PORT']))
 cursor= db.cursor()
 
-engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
+def connection_with_sqlaclchemy(name_db : str) -> None:
+    """
+    Établit une connexion avec une base de données MySQL en utilisant SQLAlchemy.
+
+    Args :
+    - name_db (str) : Le nom de la base de données à laquelle se connecter.
+
+    Return :
+    sqlalchemy.engine.base.Engine : Un objet Engine SQLAlchemy représentant la connexion à la base de données.
+    """
+    engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
+    return engine
 #//////////////////////////////////////////////////////////////////////////////
 #                          S3 AWS
 #//////////////////////////////////////////////////////////////////////////////
