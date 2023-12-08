@@ -45,7 +45,12 @@ en local et non publiées sur Github pour des raisons de sécurités
     - create_tables_sql : Schéma de la base de données finale
     - test : Schéma d'une base de données pour test avec sqlalchemy
 
-## Méthode pour récupérer les données et les stocker dans aws
+
+<br>
+<div style="text-align:left; background-color:gray; padding:0px;">
+  <h1 style="color:white;">Méthode pour récupérer les données et les stocker dans aws :</h1>
+</div>
+<br>
 - Préparation AWS :
     - Créer un utilisateur IAM
     - Créer une table RDS mysql
