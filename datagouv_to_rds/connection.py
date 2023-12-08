@@ -13,6 +13,7 @@ Remarques: Le fichier utilise des variables d'environnement pour des raison de s
 import pymysql
 import boto3
 from sqlalchemy import create_engine
+from sqlalchemy.engine.base import Engine
 
 from email.mime.multipart import MIMEMultipart
 
@@ -53,7 +54,7 @@ password=os.environ['DB_PASSWORD'],
 port=int(os.environ['DB_PORT']))
 cursor= db.cursor()
 
-def connection_with_sqlaclchemy(name_db : str) -> None:
+def connection_with_sqlaclchemy(name_db : str) -> Engine:
     """
     Établit une connexion avec une base de données MySQL en utilisant SQLAlchemy.
 
@@ -63,7 +64,7 @@ def connection_with_sqlaclchemy(name_db : str) -> None:
     Return :
     sqlalchemy.engine.base.Engine : Un objet Engine SQLAlchemy représentant la connexion à la base de données.
     """
-    engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
+    engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{name_db}")
     return engine
 #//////////////////////////////////////////////////////////////////////////////
 #                          S3 AWS
