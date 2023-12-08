@@ -69,6 +69,6 @@ en local et non publiées sur Github pour des raisons de sécurités
     - Si vous voulez que les données se mettent à jour automatiquement. 
     Sur Aws créer une lambda function avec le fichier lambda.py et 
     créer un événement EventBridge pour vérifier s'il y a une mise à jour
-    - Lors d'une mise à jour executer le fichier maj.py pour ajouter les nouvelles données
+    - Si vous recevez un mail vous avertissant d'une mise à jour disponible, executer le fichier maj.py pour ajouter les nouvelles données
 
     

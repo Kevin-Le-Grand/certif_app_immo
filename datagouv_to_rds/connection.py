@@ -4,9 +4,10 @@ Auteur: LE GRAND Kevin
 
 Description: Programme permettant les connections aux services d'aws et Gmail
 
-version : 1
+version : 1.1
 
 Remarques: Le fichier utilise des variables d'environnement pour des raison de sécurité
+Maj 1 -> 1.1 : Ajout de la fonction connection_with_sqlaclchemy
 """
 
 
