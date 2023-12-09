@@ -16,5 +16,6 @@ CREATE TABLE IF NOT EXISTS VENTES(
         SURFACE_TERRAIN Int NOT NULL ,
         DEPENDANCES     Varchar (50) NOT NULL ,
         ID_TYPE_BIEN    Int NOT NULL ,
-        ID_COMMUNE      Varchar (50) NOT NULL
+        ID_COMMUNE      Varchar (50) NOT NULL,
+        PRIMARY KEY (ID_VENTE)
 )ENGINE=InnoDB;

@@ -3,9 +3,9 @@ import numpy as np
 
 def select_datas(df : pd.DataFrame) -> pd.DataFrame:
     """
-    Fonction permettant de sélectionner les données parmis celle disponibles.  
+    Fonction permettant de sélectionner les données parmi celles disponibles.  
 
-    Récupére les lignes concernant une vente et dont le local est uniquement une maison ou un appartement et qui peuvent posséder une dépendances.
+    Récupère les lignes concernant une vente et dont le local est uniquement une maison ou un appartement et qui peuvent posséder une dépendances.
 
     Les lignes récupérées sont :
         - id_mutation
@@ -79,14 +79,14 @@ def nan_management(df : pd.DataFrame) -> pd.DataFrame:
         - latitude : suppression de lignes
     """
 
-    # Récupération des id_mutaiton avec des Nan dans date_mutation
+    # Récupération des id_mutation avec des Nan dans date_mutation
     liste_id_with_nan = df.loc[pd.isna(df['date_mutation']), 'id_mutation'].unique()
     # Suppression des lignes avec une valeur Nan dans date_mutation
     df = df[~df['id_mutation'].isin(liste_id_with_nan)]
 
-    # Récupération des id_mutaiton avec des Nan dans valeur_fonciere
+    # Récupération des id_mutation avec des Nan dans valeur_foncière
     liste_id_with_nan = df.loc[pd.isna(df['valeur_fonciere']), 'id_mutation'].unique()
-    # Suppression des lignes avec une valeur Nan dans valeur_fonciere
+    # Suppression des lignes avec une valeur Nan dans valeur_foncière
     df = df[~df['id_mutation'].isin(liste_id_with_nan)]
     
     # Les Nan dans adresse_numero peuvent correspondre à un lieu dit donc sans numéro, 
@@ -100,13 +100,13 @@ def nan_management(df : pd.DataFrame) -> pd.DataFrame:
     # On remplace le code postal manquant par 0.0 et on prendra le max lors du groupement
     df['code_postal'] = df['code_postal'].fillna("0.0")
 
-    # Récupération des id_mutaiton avec des Nan dans code_commune
+    # Récupération des id_mutation avec des Nan dans code_commune
     liste_id_with_nan = df.loc[pd.isna(df['code_commune']), 'id_mutation'].unique()
     df = df[~df['id_mutation'].isin(liste_id_with_nan)]
 
     # On va remplacer la valeur des Nan dans nombre_pieces_principales, surface_reelle_bati et surface_terrain par "O.O" 
     # Lors du groupement on prendra la valeur max de nombre_pieces_principales et surface_reelle_bati
-    # Mais on fera la somme de surface_terrain qui correspond à la taille de plusieures parcelles de terrain
+    # Mais on fera la somme de surface_terrain qui correspond à la taille de plusieurs parcelles de terrain
     df['nombre_pieces_principales'] = df['nombre_pieces_principales'].fillna("0.0")
     df['surface_reelle_bati'] = df['surface_reelle_bati'].fillna("0.0")
     df['surface_terrain'] = df['surface_terrain'].fillna("0.0")
@@ -124,9 +124,9 @@ def nan_management(df : pd.DataFrame) -> pd.DataFrame:
 
 def format_data(df : pd.DataFrame) -> pd.DataFrame :
     """
-    Fonction permettant d'adapter les données du dataframe au type de données de 
+    Fonction permettant d'adapter les données du data frame au type de données de 
     la bases de données RDS :
-        - id_mutation : ne sera pas inclu dans la base de données
+        - id_mutation : ne sera pas inclus dans la base de données
         - date_mutation : pd.to_datetime
         - valeur_fonciere : int
         - adresse_numero : str
@@ -219,5 +219,64 @@ def grouped_datas(df : pd.DataFrame)-> pd.DataFrame:
 
 
     df = df.groupby('id_mutation').agg(aggregation_functions).reset_index()
+
+    return df
+
+def features_and_foreign_keys(df : pd.DataFrame , 
+                              liste_ids : list ,
+                              annee : str) -> pd.DataFrame :
+    """
+    Fonction permettant de supprimer des lignes dans les données à insérer et d'adapter
+    les variables du data frame à celles de la base de données :
+    
+    - Suppression de la colonne id_mutation
+    - Changement des valeurs de la colonne type_local pour s'adapter à la table TYPES_BIENS
+    - Changement des nom des colonnes du data frame
+    - Suppression des lignes comportant un id_commune non présent dans la table COMMUNE
+
+    Args:
+        - df : Données des ventes
+        - liste_ids : liste des codes communes issus de l'api
+        - annee : correspond à l'année des données traitées
+
+    Return:
+        - df : le data frame de sortie avec toutes les données pouvant être insérées
+
+    Remarque :
+    La fonction permet d'afficher le nombre de ventes supprimée sur l'année.
+    """
+    # Suppression de la colonne id_mutation qui est inutile maintenant
+    df = df.iloc[:,1:]
+
+    # Remplacement de la valeur de type local pour pouvoir être jointé
+    # sur la table TYPES_BIENS
+    df['type_local'] = df['type_local'].replace({'Maison': 2, 'Appartement': 1})
+    df['type_local'] = df.type_local.astype(int)
+
+    # Correlation entre les colonnes 
+    column_mapping={'date_mutation' : 'DATE_MUTATION',
+                    'valeur_fonciere' : 'MONTANT',
+                    'adresse_numero' : 'NUMERO_RUE',
+                    'adresse_nom_voie': 'RUE',
+                    'code_postal' :  'CODE_POSTAL',
+                    'code_commune' : 'ID_COMMUNE',
+                    'type_local' : 'ID_TYPE_BIEN',
+                    'nombre_pieces_principales' : 'NB_PIECES',
+                    'surface_reelle_bati' : 'SURFACE_BATI',
+                    'surface_terrain' : 'SURFACE_TERRAIN',
+                    'longitude' : 'LONGITUDE',
+                    'latitude': 'LATITUDE',
+                    'dependance' : 'DEPENDANCES'}
+    df.columns = [column_mapping[col] for col in df.columns]
+    
+    # Comparaison entre la table COMMUNES et VENTES
+    liste_id_commune_a_verifier = df.ID_COMMUNE.to_list()
+    elements_not_in_b = set(liste_id_commune_a_verifier) - set(liste_ids)
+    print(f"Nombre de lignes à insérer pour l'année {annee.split('/')[0]} : ",df.shape[0])
+    print("Nombre de lignes ne pouvant être insérées :",
+        df.loc[df['ID_COMMUNE'].isin(elements_not_in_b),:].shape[0])
+    
+    # Suppression des ventes ayant un code_commune non présent dans la table COMMUNES
+    df = df[~df['ID_COMMUNE'].isin(elements_not_in_b)]
 
     return df

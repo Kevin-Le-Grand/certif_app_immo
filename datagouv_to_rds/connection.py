@@ -7,7 +7,7 @@ Description: Programme permettant les connections aux services d'aws et Gmail
 version : 1.1
 
 Remarques: Le fichier utilise des variables d'environnement pour des raison de sécurité
-Maj 1 -> 1.1 : Ajout de la fonction connection_with_sqlaclchemy
+Maj 1 -> 1.1 : Ajout de la fonction connection_with_sqlalchemy
 """
 
 
@@ -55,7 +55,7 @@ password=os.environ['DB_PASSWORD'],
 port=int(os.environ['DB_PORT']))
 cursor= db.cursor()
 
-def connection_with_sqlaclchemy(name_db : str) -> Engine:
+def connection_with_sqlalchemy(name_db : str) -> Engine:
     """
     Établit une connexion avec une base de données MySQL en utilisant SQLAlchemy.
 
