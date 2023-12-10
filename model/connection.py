@@ -18,12 +18,6 @@ os.environ['AWS_SECRET_ACCESS_KEY'] = os.environ['AWS_SECRET_ACCESS_KEY']
 #//////////////////////////////////////////////////////////////////////////////
 #                          Database RDS AWS
 #//////////////////////////////////////////////////////////////////////////////
-db = pymysql.connect(host=os.environ['DB_HOST'],
-user=os.environ['DB_USER'],
-password=os.environ['DB_PASSWORD'],
-port=int(os.environ['DB_PORT']))
-cursor= db.cursor()
-
 def connection_with_sqlalchemy(name_db : str) -> Engine:
     """
     Établit une connexion avec une base de données MySQL en utilisant SQLAlchemy.
