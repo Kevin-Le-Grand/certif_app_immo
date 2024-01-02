@@ -27,7 +27,7 @@ st.markdown(
 
 def main():
     # Affichage du logo
-    st.sidebar.markdown('<div><img src="Logo.png" alt="Logo" width="200"></div>', unsafe_allow_html=True)
+    st.sidebar.markdown('<div><img src="./Logo.png" alt="Logo" width="200"></div>', unsafe_allow_html=True)
     
     valid_formulaire=False
     #//////////////////////////////////////////////////////////////////////////////

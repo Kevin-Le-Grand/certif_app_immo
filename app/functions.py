@@ -51,9 +51,10 @@ def affichage_ventes_proximite(commune : list) -> str:
     result = cursor.fetchall()
     # Transformation de la requête en dataframe
     df = pd.DataFrame(result)
+    print(df.columns.to_list())
     df.columns= ["id","MONTANT","NUMERO_RUE","RUE","CODE_POSTAL","longitude","latitude",
-                 "DATE_MUTATION","SURFACE_BATI","SURFACE_TERRAIN","NOMBRE_PIECES",
-                 "ID_TYPE_BIEN","CODE_COMMUNE","NAME_TYPE_BIEN","NAME_COMMUNE"]
+                 "DATE_MUTATION","SURFACE_BATI","NOMBRE_PIECES","SURFACE_TERRAIN",
+                 "ID_TYPE_BIEN","xxxxx","CODE_COMMUNE","NAME_TYPE_BIEN","NAME_COMMUNE"]
     print(df)
     df['info'] = df.apply(lambda row: f"""
     Type de bien : <br>{row['NAME_TYPE_BIEN']} <br><br>
