@@ -23,6 +23,10 @@ port=int(os.environ['DB_PORT']))
 cursor= db.cursor()
 cursor.execute("USE datagouv;")
 
+
+#//////////////////////////////////////////////////////////////////////////////
+#                          Création de la carte interactive
+#//////////////////////////////////////////////////////////////////////////////
 def affichage_ventes_proximite(commune : list) -> str:
     """
     Fonction permettant d'afficher sur une carte les ventes effectuées sur une commune  
@@ -50,29 +54,27 @@ def affichage_ventes_proximite(commune : list) -> str:
     """
     cursor.execute(query)
     result = cursor.fetchall()
-    # Transformation de la requête en dataframe
+    # Transformation de la requête en data frame
     df = pd.DataFrame(result)
-    print(df.columns.to_list())
+    
     df.columns= ["id","MONTANT","NUMERO_RUE","RUE","CODE_POSTAL","longitude","latitude",
                  "DATE_MUTATION","SURFACE_BATI","NOMBRE_PIECES","SURFACE_TERRAIN",
                  "ID_TYPE_BIEN","xxxxx","CODE_COMMUNE","NAME_TYPE_BIEN","NAME_COMMUNE"]
-    print(df)
+    
+    # Création des popup folium
     df['info'] = df.apply(lambda row: f"""
-    Type de bien : <br>{row['NAME_TYPE_BIEN']} <br><br>
-    Date de vente : <br>{row['DATE_MUTATION']} <br><br>
-    Adresse : <br>{row['NUMERO_RUE']} {row['RUE']} <br>
+    <b>Type de bien :</b><br>{row['NAME_TYPE_BIEN']} <br><br>
+    <b>Date de vente : </b><br>{row['DATE_MUTATION']} <br><br>
+    <b>Adresse : </b><br>{row['NUMERO_RUE']} {row['RUE']} <br>
     {row['CODE_POSTAL']} {row['NAME_COMMUNE']} <br><br>
-    Surface habitable : {row['SURFACE_BATI']} <br>
-    Surface terrain : {row['SURFACE_TERRAIN']} <br>
-    Nombre de pièces : {row['NOMBRE_PIECES']} <br><br>
-    Montant : <br>{row['MONTANT']}
-    """, axis=1)
-
-    print(df.columns.to_list())
-                
+    <b>Surface habitable :</b> {row['SURFACE_BATI']} <br>
+    <b>Surface terrain :</b> {row['SURFACE_TERRAIN']} <br>
+    <b>Nombre de pièces :</b> {row['NOMBRE_PIECES']} <br><br>
+    <b>Montant : </b><br>{row['MONTANT']}
+    """, axis=1)                
 
     # Centrage de la carte au milieu des coordonnées
-    folium_map = folium.Map(location=[df['latitude'].mean(), df['longitude'].mean()], zoom_start=6)
+    folium_map = folium.Map(location=[df['latitude'].mean(), df['longitude'].mean()], zoom_start=4)
 
     # Création d'un cluster de marqueurs
     marker_cluster = MarkerCluster()

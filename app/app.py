@@ -16,9 +16,9 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        .css-1m5b2c4 {
-            margin-top: 0px;
-        }
+        .css-1544g2n{
+        padding-top :0px;
+    }
     </style>
     """,
     unsafe_allow_html=True
