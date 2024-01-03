@@ -74,7 +74,7 @@ def affichage_ventes_proximite(commune : list) -> str:
     """, axis=1)                
 
     # Centrage de la carte au milieu des coordonnées
-    folium_map = folium.Map(location=[df['latitude'].mean(), df['longitude'].mean()], zoom_start=10)
+    folium_map = folium.Map(location=[df['latitude'].mean(), df['longitude'].mean()], zoom_start=15)
 
     # Création d'un cluster de marqueurs
     marker_cluster = MarkerCluster()
