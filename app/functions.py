@@ -12,6 +12,7 @@ from folium.plugins import MarkerCluster
 # #                      Chargement des variable en local
 # #//////////////////////////////////////////////////////////////////////////////
 # load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/app/.venv/.local")
+
 #//////////////////////////////////////////////////////////////////////////////
 #                          Database RDS AWS
 #//////////////////////////////////////////////////////////////////////////////
@@ -24,7 +25,7 @@ cursor.execute("USE datagouv;")
 
 def affichage_ventes_proximite(commune : list) -> str:
     """
-    Fonction permettant d'afficher sur une carte les ventes effecuées sur une commune  
+    Fonction permettant d'afficher sur une carte les ventes effectuées sur une commune  
     à l'aide de Folium
 
     Args :
@@ -32,7 +33,7 @@ def affichage_ventes_proximite(commune : list) -> str:
     Returns:
         str : <html>.....</html>
     """
-    # Requête pour selectioner les ventes sur la communes
+    # Requête pour sélectionner les ventes sur la communes
     query=f"""
     SELECT 
         v.*,

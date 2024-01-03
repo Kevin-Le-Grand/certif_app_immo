@@ -59,12 +59,12 @@ def main():
         cursor.execute(query)
         resultats = cursor.fetchall()
         liste_departements=[row[1] for row in resultats]
-        option_par_defaut="Sélecionnez un département"
-        departement = st.sidebar.selectbox("Sélecionnez un département", 
+        option_par_defaut="Sélectionnez un département"
+        departement = st.sidebar.selectbox("Sélectionnez un département", 
                                 [option_par_defaut]+liste_departements)
         
 
-        if departement!="Sélecionnez un département":
+        if departement!="Sélectionnez un département":
             # Ajout d'un menu déroulant avec les communes
             query=f"""
             SELECT * FROM COMMUNES AS A
@@ -78,10 +78,10 @@ def main():
             cursor.execute(query)
             resultats = cursor.fetchall()
             liste_communes=[row[1] for row in resultats]
-            option_par_defaut="Sélecionnez une commune"
-            commune = st.sidebar.selectbox("Sélecionnez une commune", 
+            option_par_defaut="Sélectionnez une commune"
+            commune = st.sidebar.selectbox("Sélectionnez une commune", 
                                 [option_par_defaut]+liste_communes)
-            if commune!="Sélecionnez une commune":
+            if commune!="Sélectionnez une commune":
                 type_de_bien = st.sidebar.selectbox("Sélectionnez le type de logement :", 
                                         ["Faites votre choix"]+["Maison", "Appartement"])
                 if type_de_bien!="Faites votre choix":
@@ -106,7 +106,7 @@ def main():
                 else:
                     st.write("Sélectionner un type de bien")
             else:
-                st.write("Sélecionnez une commune")
+                st.write("Sélectionnez une commune")
         else:
             st.write("Veuillez choisir un département")
     else:
@@ -120,8 +120,8 @@ def main():
         st.title("Le formulaire fonctionne plus qu'a réaliser le modèle et créer une api !!!")
         # Affichage des ventes réalisées dans la commune
         st.components.v1.html(affichage_ventes_proximite([region,departement,commune]), height=500)
-        cursor.close()
-        db.close()
+        # cursor.close()
+        # db.close()
     else:
         pass
 
