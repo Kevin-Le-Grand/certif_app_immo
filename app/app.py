@@ -12,11 +12,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Ajout du style CSS pour supprimer la marge haute et centrer le logo
+# Ajout du style CSS pour supprimer la marge haute
 st.markdown(
     """
     <style>
-        .css-1544g2n{
+        .ezrtsby2{
         padding-top :0px;
     }
     </style>
@@ -27,7 +27,9 @@ st.markdown(
 
 def main():
     # Affichage du logo
-    st.sidebar.markdown('<div><img src="https://raw.githubusercontent.com/rastakoer/certif_app_immo/application/app/Logo.png" alt="Logo" width="200"></div>', unsafe_allow_html=True)
+    st.sidebar.markdown("""<div style="display: flex; justify-content: center; align-items: center;">
+                        <img src="https://raw.githubusercontent.com/rastakoer/certif_app_immo/application/app/Logo.png" alt="Logo" width="200">
+                        </div>""", unsafe_allow_html=True)
     
     valid_formulaire=False
     #//////////////////////////////////////////////////////////////////////////////
