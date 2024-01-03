@@ -1,3 +1,5 @@
 .venv
 ../model/
 __pycache__
+keys.sh
+push.sh
