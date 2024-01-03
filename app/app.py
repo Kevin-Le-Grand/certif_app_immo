@@ -98,7 +98,7 @@ def main():
                                     st.write("Veuillez entrer la surface de votre terrain")
                             else:
                                 surface_terrain=0
-                                valid_formulaire = st.button("Valider")
+                                valid_formulaire = st.sidebar.button("Valider")
                         else:
                             st.write ("Veuillez indiquer une surface habitable")
                     else:
@@ -124,8 +124,6 @@ def main():
         # db.close()
     else:
         pass
-
-
 
 if __name__ == "__main__":
     main()
