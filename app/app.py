@@ -16,8 +16,8 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        body {
-            margin-top: 0;
+        .css-1m5b2c4 {
+            margin-top: 0px;
         }
     </style>
     """,
@@ -27,7 +27,7 @@ st.markdown(
 
 def main():
     # Affichage du logo
-    st.sidebar.markdown('<div><img src="./Logo.png" alt="Logo" width="200"></div>', unsafe_allow_html=True)
+    st.sidebar.markdown('<div><img src="https://raw.githubusercontent.com/rastakoer/certif_app_immo/application/app/Logo.png" alt="Logo" width="200"></div>', unsafe_allow_html=True)
     
     valid_formulaire=False
     #//////////////////////////////////////////////////////////////////////////////
