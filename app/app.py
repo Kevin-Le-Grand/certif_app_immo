@@ -117,7 +117,7 @@ def main():
     #                          Actions à produire si formulaire valide
     #//////////////////////////////////////////////////////////////////////////////
     if valid_formulaire:
-        st.title("Le formulaire fonctionne plus qu'a réaliser le modèle et créer une api !!!")
+        st.title("Le bien est estimé à ... Site en construction")
         # Affichage des ventes réalisées dans la commune
         st.components.v1.html(affichage_ventes_proximite([region,departement,commune]), height=500)
         # cursor.close()
