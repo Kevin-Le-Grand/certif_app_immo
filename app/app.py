@@ -16,9 +16,9 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        .ezrtsby2{
-        padding-top :0px;
-    }
+        body {
+            margin-top: 0;
+        }
     </style>
     """,
     unsafe_allow_html=True
