@@ -6,8 +6,8 @@ from functions import train_model,loading_data
 from dotenv import load_dotenv
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, mean_absolute_percentage_error
 
-# Chargement des variable de connection aws et RDS en local
-load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
+# # Chargement des variable de connection aws et RDS en local
+# load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
 
 # Récupération des données
 df = loading_data()
