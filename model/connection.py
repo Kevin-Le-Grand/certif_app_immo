@@ -15,6 +15,7 @@ load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.loca
 os.environ['AWS_ACCESS_KEY_ID'] = os.environ['AWS_ACCESS_KEY_ID']
 os.environ['AWS_SECRET_ACCESS_KEY'] = os.environ['AWS_SECRET_ACCESS_KEY']
 
+
 #//////////////////////////////////////////////////////////////////////////////
 #                          Database RDS AWS
 #//////////////////////////////////////////////////////////////////////////////
