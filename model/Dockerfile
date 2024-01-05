@@ -10,6 +10,4 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-COPY . /home/app
-
-CMD python3 train_V1.py
+CMD python3 ./model/train_V1.py

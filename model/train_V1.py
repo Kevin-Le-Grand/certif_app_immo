@@ -16,7 +16,7 @@ df = loading_data()
 model, _, _, X_train, y_train = train_model(df)
 
 # Connexion à MLflow
-mlflow.set_tracking_uri("https://mlflowimmoapp-1d5f12d47c49.herokuapp.com/")
+mlflow.set_tracking_uri("https://mlflowimmoapp3-09b1952ab959.herokuapp.com/")
 
 # Configuration de l'autolog
 mlflow.sklearn.autolog()
