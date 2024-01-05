@@ -59,6 +59,4 @@ def main():
                                 registered_model_name = "RFR")
     
 if __name__ == '__main__':
-    # Spécifiez le port lors du démarrage de l'application
-    port = int(os.environ.get('PORT', 5000))
     main()
