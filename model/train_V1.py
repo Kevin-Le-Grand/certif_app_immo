@@ -9,49 +9,56 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, m
 # # Chargement des variable de connection aws et RDS en local
 # load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
 
-# Récupération des données
-df = loading_data()
 
-# Préparation des données
-model, _, _, X_train, y_train = train_model(df)
+def main():
+    # Récupération des données
+    df = loading_data()
 
-# Connexion à MLflow
-mlflow.set_tracking_uri("https://mlflowimmoapp3-09b1952ab959.herokuapp.com/")
+    # Préparation des données
+    model, _, _, X_train, y_train = train_model(df)
 
-# Configuration de l'autolog
-mlflow.sklearn.autolog()
+    # Connexion à MLflow
+    mlflow.set_tracking_uri("https://mlflowimmoapp3-09b1952ab959.herokuapp.com/")
 
-# Connexion à une expérience
-experiment_name = "First_model"
+    # Configuration de l'autolog
+    mlflow.sklearn.autolog()
 
-# Vérification que l'experience existe
-experiment = mlflow.get_experiment_by_name(experiment_name)
+    # Connexion à une expérience
+    experiment_name = "First_model"
 
-if experiment is None:
-    # Si l'expérience n'existe pas, la créer
-    mlflow.create_experiment(experiment_name)
-    # On récupère à nouveau l'expérience après la création
+    # Vérification que l'experience existe
     experiment = mlflow.get_experiment_by_name(experiment_name)
 
-with mlflow.start_run(experiment_id = experiment.experiment_id, run_name='Training_V1'):
+    if experiment is None:
+        # Si l'expérience n'existe pas, la créer
+        mlflow.create_experiment(experiment_name)
+        # On récupère à nouveau l'expérience après la création
+        experiment = mlflow.get_experiment_by_name(experiment_name)
 
-    model_name = "RFR"
+    with mlflow.start_run(experiment_id = experiment.experiment_id, run_name='Training_V1'):
 
-    # Calcul des métriques
-    r2 = model.score(X_train, y_train)
-    mse = mean_squared_error(y_train, model.predict(X_train))
-    rmse = np.sqrt(mse)
-    mae = mean_absolute_error(y_train, model.predict(X_train))
-    mape = mean_absolute_percentage_error(y_train, model.predict(X_train))
+        model_name = "RFR"
 
-    # Enregistrement des métriques
-    mlflow.log_metric("train_r2", r2)
-    mlflow.log_metric("train_mse", mse)
-    mlflow.log_metric("train_rmse", rmse)
-    mlflow.log_metric("train_mae", mae)
-    mlflow.log_metric("train_mape", mape)
+        # Calcul des métriques
+        r2 = model.score(X_train, y_train)
+        mse = mean_squared_error(y_train, model.predict(X_train))
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_train, model.predict(X_train))
+        mape = mean_absolute_percentage_error(y_train, model.predict(X_train))
 
-    mlflow.sklearn.log_model(model,
-                             "ImmoApp",
-                             input_example = X_train.head(1),
-                             registered_model_name = "RFR")
+        # Enregistrement des métriques
+        mlflow.log_metric("train_r2", r2)
+        mlflow.log_metric("train_mse", mse)
+        mlflow.log_metric("train_rmse", rmse)
+        mlflow.log_metric("train_mae", mae)
+        mlflow.log_metric("train_mape", mape)
+
+        mlflow.sklearn.log_model(model,
+                                "ImmoApp",
+                                input_example = X_train.head(1),
+                                registered_model_name = "RFR")
+    
+if __name__ == '__main__':
+    # Spécifiez le port lors du démarrage de l'application
+    port = int(os.environ.get('PORT', 5000))
+    main()
