@@ -9,5 +9,3 @@ RUN git clone https://github.com/rastakoer/certif_app_immo.git --branch model --
 COPY requirements.txt .
 
 RUN pip install -r requirements.txt
-
-# CMD python3 model/train_V1.py
