@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt
 
 COPY . /home/app
 
-CMD python3 train.py
+CMD python3 train_V1.py
