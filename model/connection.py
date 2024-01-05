@@ -1,5 +1,5 @@
 import pymysql
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 
 from sqlalchemy import create_engine
@@ -9,11 +9,11 @@ from sqlalchemy.engine.base import Engine
 #//////////////////////////////////////////////////////////////////////////////
 #                      Chargement des variable en local
 #//////////////////////////////////////////////////////////////////////////////
-load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
+# load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
 
 
-os.environ['AWS_ACCESS_KEY_ID'] = os.environ['AWS_ACCESS_KEY_ID']
-os.environ['AWS_SECRET_ACCESS_KEY'] = os.environ['AWS_SECRET_ACCESS_KEY']
+# os.environ['AWS_ACCESS_KEY_ID'] = os.environ['AWS_ACCESS_KEY_ID']
+# os.environ['AWS_SECRET_ACCESS_KEY'] = os.environ['AWS_SECRET_ACCESS_KEY']
 
 
 #//////////////////////////////////////////////////////////////////////////////
