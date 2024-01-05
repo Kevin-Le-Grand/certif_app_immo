@@ -1,1 +1,1 @@
-web: mlflow ui --port $PORT
+web: python model/train.py $PORT
