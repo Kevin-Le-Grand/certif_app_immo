@@ -29,6 +29,7 @@ def connection_with_sqlalchemy(name_db : str) -> Engine:
     Return :
     sqlalchemy.engine.base.Engine : Un objet Engine SQLAlchemy représentant la connexion à la base de données.
     """
-    print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",os.environ['DB_USER'])
+    user=os.environ.get('DB_USER')
+    print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",user)
     engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{name_db}")
     return engine
