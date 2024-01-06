@@ -7,5 +7,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     mlflow.set_tracking_uri(os.environ.get("BACKEND_STORE_URI"))
     mlflow.sklearn.autolog()
-    mlflow.start()
 
