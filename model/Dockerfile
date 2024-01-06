@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y git nano
 
 RUN git clone https://github.com/rastakoer/certif_app_immo.git --branch model --single-branch .
 
+RUN ls -R
+
 COPY requirements.txt .
 
 COPY Procfile .
