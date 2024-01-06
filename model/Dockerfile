@@ -8,7 +8,7 @@ RUN git clone https://github.com/rastakoer/certif_app_immo.git --branch model --
 
 COPY requirements.txt .
 
-COPY ../Procfile .
+COPY Procfile .
 
 RUN pip install -r requirements.txt
 
