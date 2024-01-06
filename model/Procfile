@@ -1,1 +1,1 @@
-web: mlflow server -h 0.0.0.0 -p $PORT --backend-store-uri $BACKEND_STORE_URI
+web: mlflow ui -h 0.0.0.0 -p $PORT --backend-store-uri $BACKEND_STORE_URI
