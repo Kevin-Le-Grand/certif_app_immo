@@ -4,9 +4,9 @@ WORKDIR /home/app/
 
 RUN apt-get update && apt-get install -y git nano
 
-RUN git clone https://github.com/rastakoer/certif_app_immo.git --branch model --single-branch .
+# RUN git clone https://github.com/rastakoer/certif_app_immo.git --branch model --single-branch .
 
-RUN ls -R
+# RUN ls -R
 
 COPY requirements.txt .
 
@@ -14,4 +14,4 @@ COPY Procfile .
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "model/config_mlflow_heroku.py"]
+# CMD ["python", "model/config_mlflow_heroku.py"]
