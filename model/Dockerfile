@@ -9,3 +9,5 @@ RUN git clone https://github.com/rastakoer/certif_app_immo.git --branch model --
 COPY requirements.txt .
 
 RUN pip install -r requirements.txt
+
+CMD ["python", "config_mlflow_heroku.py"]
