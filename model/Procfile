@@ -1,1 +1,1 @@
-web: mlflow ui -p $PORT --host 0.0.0.0
+web: python model/config_mlflow_heroku.py
