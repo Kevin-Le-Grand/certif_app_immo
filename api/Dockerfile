@@ -5,7 +5,7 @@ FROM continuumio/miniconda3
 WORKDIR /home/app
 
 # Install git
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git nano
 
 # # Recuperation du repo
 RUN git clone  https://github.com/rastakoer/certif_app_immo.git --branch api .
@@ -20,4 +20,4 @@ COPY model ./app/
 RUN pip install -r requirements.txt
 
 # # Exécutez votre application
-CMD uvicorn app:app --host=0.0.0.0 --port=$PORT
+CMD uvicorn api.app:app --host=0.0.0.0 --port=$PORT
