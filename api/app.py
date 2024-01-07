@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-import functions
+from api import functions
 
 
 # Config apparence API

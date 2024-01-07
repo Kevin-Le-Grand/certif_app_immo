@@ -14,7 +14,7 @@ RUN git clone  https://github.com/rastakoer/certif_app_immo.git --branch api .
 COPY requirements.txt .
 
 # # Copiez les fichiers nécessaires
-COPY model ./app/
+COPY model ./api/
 
 # # Installez les dépendances
 RUN pip install -r requirements.txt
