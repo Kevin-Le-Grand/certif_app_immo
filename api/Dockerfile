@@ -5,7 +5,7 @@ FROM continuumio/miniconda3
 WORKDIR /home/app
 
 # # Recuperation du repo
-RUN git clone  https://github.com/rastakoer/deploy_irirs --branch api .
+RUN git clone  https://github.com/rastakoer/certif_app_immo.git --branch api .
  
 # # Copiez les fichiers nécessaires
 COPY requirements.txt .

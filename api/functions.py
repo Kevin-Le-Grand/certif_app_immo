@@ -6,23 +6,27 @@ import os
 import mlflow
 import boto3
 
+
+#---------------------------------------------------------------
+#       Récupération d'objet depuis S3
+#---------------------------------------------------------------
+# Configuration s3
+s3_key = os.environ.get('AWS_ACCESS_KEY_ID')
+s3_secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
+s3 = boto3.client('s3')
+# Télécharger l'objet depuis S3 dans un flux BytesIO
+def load_joblib_from_s3(bucket_name, key):
+    response = s3.get_object(Bucket=bucket_name, Key=key)
+    joblib_content = response['Body'].read()
+
+    # Charger l'objet depuis le flux BytesIO
+    loaded_object = joblib.load(io.BytesIO(joblib_content))
+    return loaded_object
+
 #---------------------------------------------------------------
 #       Récupération des scalers 
 #---------------------------------------------------------------
 # Récupération des label_encoders et scalers depuis s3
-
-# Configuration s3
-# s3_key = os.environ.get('AWS_ACCESS_KEY_ID')
-# s3_secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
-# s3 = boto3.client('s3')
-# # Télécharger l'objet depuis S3 dans un flux BytesIO
-# def load_joblib_from_s3(bucket_name, key):
-#     response = s3.get_object(Bucket=bucket_name, Key=key)
-#     joblib_content = response['Body'].read()
-
-#     # Charger l'objet depuis le flux BytesIO
-#     loaded_object = joblib.load(io.BytesIO(joblib_content))
-#     return loaded_object
 
 # scalers = load_joblib_from_s3("name_bucket","chemin/scalers") # A charger depuis S3
 # encoders = load_joblib_from_s3("name_bucket","chemin/encoders") # A charger depuis S3
