@@ -20,7 +20,7 @@ st.markdown(
         .block-container {
             padding-top: 0;
         }
-        .css-1544g2n{
+        .st-emotion-cache-16txtl3 {
             padding-top: 0;
         }
     </style>
