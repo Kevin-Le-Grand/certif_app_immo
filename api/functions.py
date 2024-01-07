@@ -37,25 +37,25 @@ def load_joblib_from_s3(bucket_name, key):
 #       Récupération des scalers 
 #---------------------------------------------------------------
 # Récupération des label_encoders et scalers depuis s3
-
-scalers = load_joblib_from_s3(bucket,"app_immo/joblib/scalers") # A charger depuis S3
-encoders = load_joblib_from_s3(bucket,"app_immo/joblib/encoders") # A charger depuis S3
+# scalers = load_joblib_from_s3(bucket,"app_immo/joblib/scalers") 
+# encoders = load_joblib_from_s3(bucket,"app_immo/joblib/encoders") 
 
 # Récupération en local
-# scalers = joblib.load("scalers")
-# encoders = joblib.load("encoders")
+scalers = joblib.load("scalers")
+encoders = joblib.load("encoders")
 
 #---------------------------------------------------------------
 #           Récupération du modèle 
 #---------------------------------------------------------------
+# Récupération du modèle en local (en attendant de mettre en place MLFlow)
+model = load_joblib_from_s3(bucket,"app_immo/joblib/model")
+
 # Récupération du modèle sur MlFlow
 
 # mlflow.set_tracking_uri('...') 
 # logged_model = '...' # le run du modèle
 # model = mlflow.sklearn.load_model(logged_model)
 
-# Récupération du modèle en local
-model = load_joblib_from_s3(bucket,"app_immo/joblib/model")
 
 
 class Config_donnees(BaseModel):
