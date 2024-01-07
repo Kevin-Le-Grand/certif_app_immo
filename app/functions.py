@@ -8,6 +8,9 @@ import folium
 import geopandas as gpd
 from folium.plugins import MarkerCluster
 
+# Librairie pour l'api
+import requests
+
 # #//////////////////////////////////////////////////////////////////////////////
 # #                      Chargement des variable en local
 # #//////////////////////////////////////////////////////////////////////////////
@@ -92,3 +95,17 @@ def affichage_ventes_proximite(commune : list) -> str:
     # Convertir la carte Folium en HTML
     folium_html = folium_map.get_root().render()
     return  folium_html
+
+def api_predict(data: dict) -> dict:
+    """
+    Fonction permettant de faire l'appel à l'api et de recevoir une prédiction
+
+    Args :
+    - data (dict) : Dictionnaire avec les valeurs saisies par l'utilisateur
+
+    Returns
+     - 
+    """
+    response = requests.post('https://apiimmoappkevleg-7337fa262339.herokuapp.com/predict',
+                              json=data)
+    return response.json()

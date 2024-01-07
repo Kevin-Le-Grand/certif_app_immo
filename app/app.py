@@ -1,6 +1,7 @@
 import streamlit as st
 from functions import *
 
+
 #//////////////////////////////////////////////////////////////////////////////
 #                          Configuration de la page
 #//////////////////////////////////////////////////////////////////////////////
@@ -119,7 +120,11 @@ def main():
     #                          Actions à produire si formulaire valide
     #//////////////////////////////////////////////////////////////////////////////
     if valid_formulaire:
-        st.title("Le bien est estimé à ... Site en construction")
+        prediction = api_predict({'SURFACE_BATI' :surface_bati,
+                                  'NB_PIECES' : nb_pieces,
+                                  'NAME_TYPE_BIEN':type_de_bien,
+                                  'Name_region' : region})
+        st.title(f"Le bien est estimé à {int(prediction['reponse'])} €")
         # Affichage des ventes réalisées dans la commune
         st.components.v1.html(affichage_ventes_proximite([region,departement,commune]), height=500)
         # cursor.close()
