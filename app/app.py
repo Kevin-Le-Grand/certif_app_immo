@@ -17,8 +17,11 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        body {
-            margin-top: 0;
+        .block-container {
+            padding-top: 0;
+        }
+        .css-1544g2n{
+            padding-top: 0;
         }
     </style>
     """,
