@@ -3,3 +3,6 @@ __pycache__
 datas_rds.csv
 .vscode
 push.sh
+model
+scalers
+encoders
