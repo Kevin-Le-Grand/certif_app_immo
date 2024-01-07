@@ -4,6 +4,9 @@ FROM continuumio/miniconda3
 # # Définissez le répertoire de travail
 WORKDIR /home/app
 
+# Install git
+RUN apt-get update && apt-get install -y git
+
 # # Recuperation du repo
 RUN git clone  https://github.com/rastakoer/certif_app_immo.git --branch api .
  
