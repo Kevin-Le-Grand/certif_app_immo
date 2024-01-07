@@ -11,27 +11,27 @@ import os
 #           Configuration S3
 #----------------------------------------------------------------------
 # Remplacez ces valeurs par les vôtres
-aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
-aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
-bucket = os.environ.get("BUCKET_NAME")
+# aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
+# aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+# bucket = os.environ.get("BUCKET_NAME")
 
-# Initialiser du client S3
-s3 = boto3.client('s3',
-                  region_name="eu-west-3",
-                  aws_access_key_id=aws_access_key_id,
-                  aws_secret_access_key=aws_secret_access_key)
+# # Initialiser du client S3
+# s3 = boto3.client('s3',
+#                   region_name="eu-west-3",
+#                   aws_access_key_id=aws_access_key_id,
+#                   aws_secret_access_key=aws_secret_access_key)
 
 #---------------------------------------------------------------
 #       Récupération d'objet depuis S3
 #---------------------------------------------------------------
 # Télécharger l'objet depuis S3 dans un flux BytesIO
-def load_joblib_from_s3(bucket_name, key):
-    response = s3.get_object(Bucket=bucket_name, Key=key)
-    joblib_content = response['Body'].read()
+# def load_joblib_from_s3(bucket_name, key):
+#     response = s3.get_object(Bucket=bucket_name, Key=key)
+#     joblib_content = response['Body'].read()
 
-    # Charger l'objet depuis le flux BytesIO
-    loaded_object = joblib.load(io.BytesIO(joblib_content))
-    return loaded_object
+#     # Charger l'objet depuis le flux BytesIO
+#     loaded_object = joblib.load(io.BytesIO(joblib_content))
+#     return loaded_object
 
 #---------------------------------------------------------------
 #       Récupération des scalers 
