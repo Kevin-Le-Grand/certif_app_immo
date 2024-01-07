@@ -78,11 +78,11 @@ def encod_scal(n:dict) ->list:
     - transformed_data (list) : Données standardisées de type [0.12,0.55,0.56,0.2]
     """
     transformed_data=[]
-    transformed_data.append(scalers['SURFACE_BATI'].transform(np.array([n['SURFACE_BATI']]).reshape(-1, 1))[0][0])
-    transformed_data.append(scalers['NB_PIECES'].transform(np.array([n['NB_PIECES']]).reshape(-1, 1))[0][0])
-    type_bien = encoders['NAME_TYPE_BIEN'].transform([n['NAME_TYPE_BIEN']])[0] 
+    transformed_data.append(scalers['SURFACE_BATI'].transform(np.array([n.SURFACE_BATI]).reshape(-1, 1))[0][0])
+    transformed_data.append(scalers['NB_PIECES'].transform(np.array([n.NB_PIECES]).reshape(-1, 1))[0][0])
+    type_bien = encoders['NAME_TYPE_BIEN'].transform([n.NAME_TYPE_BIEN])[0] 
     transformed_data.append(scalers['NAME_TYPE_BIEN'].transform(np.array([type_bien]).reshape(-1, 1))[0][0])
-    region = encoders['Name_region'].transform([n['Name_region']])[0] 
+    region = encoders['Name_region'].transform([n.Name_region])[0] 
     transformed_data.append(scalers['Name_region'].transform(np.array([region]).reshape(-1,1))[0][0])
     return transformed_data
 
