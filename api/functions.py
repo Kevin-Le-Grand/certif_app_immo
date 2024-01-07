@@ -5,15 +5,25 @@ from pydantic import BaseModel
 import os
 import mlflow
 import boto3
+import os
 
+#----------------------------------------------------------------------
+#           Configuration S3
+#----------------------------------------------------------------------
+# Remplacez ces valeurs par les vôtres
+aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+bucket = os.environ.get("BUCKET_NAME")
+
+# Initialiser du client S3
+s3 = boto3.client('s3',
+                  region_name="eu-west-3",
+                  aws_access_key_id=aws_access_key_id,
+                  aws_secret_access_key=aws_secret_access_key)
 
 #---------------------------------------------------------------
 #       Récupération d'objet depuis S3
 #---------------------------------------------------------------
-# Configuration s3
-s3_key = os.environ.get('AWS_ACCESS_KEY_ID')
-s3_secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
-s3 = boto3.client('s3')
 # Télécharger l'objet depuis S3 dans un flux BytesIO
 def load_joblib_from_s3(bucket_name, key):
     response = s3.get_object(Bucket=bucket_name, Key=key)
@@ -28,12 +38,12 @@ def load_joblib_from_s3(bucket_name, key):
 #---------------------------------------------------------------
 # Récupération des label_encoders et scalers depuis s3
 
-# scalers = load_joblib_from_s3("name_bucket","chemin/scalers") # A charger depuis S3
-# encoders = load_joblib_from_s3("name_bucket","chemin/encoders") # A charger depuis S3
+scalers = load_joblib_from_s3(bucket,"app_immo/joblib/scalers") # A charger depuis S3
+encoders = load_joblib_from_s3(bucket,"app_immo/joblib/encoders") # A charger depuis S3
 
 # Récupération en local
-scalers = joblib.load("scalers")
-encoders = joblib.load("encoders")
+# scalers = joblib.load("scalers")
+# encoders = joblib.load("encoders")
 
 #---------------------------------------------------------------
 #           Récupération du modèle 
@@ -45,7 +55,7 @@ encoders = joblib.load("encoders")
 # model = mlflow.sklearn.load_model(logged_model)
 
 # Récupération du modèle en local
-model = joblib.load("model")
+model = load_joblib_from_s3(bucket,"app_immo/joblib/model")
 
 
 class Config_donnees(BaseModel):
@@ -68,11 +78,11 @@ def encod_scal(n:dict) ->list:
     - transformed_data (list) : Données standardisées de type [0.12,0.55,0.56,0.2]
     """
     transformed_data=[]
-    transformed_data.append(scalers['SURFACE_BATI'].transform(np.array([n.SURFACE_BATI]).reshape(-1, 1))[0][0])
-    transformed_data.append(scalers['NB_PIECES'].transform(np.array([n.NB_PIECES]).reshape(-1, 1))[0][0])
-    type_bien = encoders['NAME_TYPE_BIEN'].transform([n.NAME_TYPE_BIEN])[0] 
+    transformed_data.append(scalers['SURFACE_BATI'].transform(np.array([n['SURFACE_BATI']]).reshape(-1, 1))[0][0])
+    transformed_data.append(scalers['NB_PIECES'].transform(np.array([n['NB_PIECES']]).reshape(-1, 1))[0][0])
+    type_bien = encoders['NAME_TYPE_BIEN'].transform([n['NAME_TYPE_BIEN']])[0] 
     transformed_data.append(scalers['NAME_TYPE_BIEN'].transform(np.array([type_bien]).reshape(-1, 1))[0][0])
-    region = encoders['Name_region'].transform([n.Name_region])[0] 
+    region = encoders['Name_region'].transform([n['Name_region']])[0] 
     transformed_data.append(scalers['Name_region'].transform(np.array([region]).reshape(-1,1))[0][0])
     return transformed_data
 
