@@ -5,7 +5,7 @@ asttokens==2.4.1
 backcall==0.2.0
 blinker==1.7.0
 boto3==1.33.10
-#botocore==1.33.10
+botocore==1.33.10
 certifi==2023.11.17
 charset-normalizer==3.3.2
 click==8.1.7
@@ -91,7 +91,7 @@ tornado==6.4
 traitlets==5.14.1
 typing-extensions==4.8.0
 tzdata==2023.3
-urllib3==2.1.0
+# urllib3==2.1.0
 uvicorn==0.24.0.post1
 wcwidth==0.2.13
 websocket-client==1.7.0
