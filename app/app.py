@@ -57,7 +57,7 @@ def main():
         FROM REGIONS
         )AS B
         ON A.ID_REGION=B.ID_REGION
-        WHERE B.Name_region='{region}';
+        WHERE B.Name_region="{region}";
         """
         cursor.execute(query)
         resultats = cursor.fetchall()
