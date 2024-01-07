@@ -48,7 +48,7 @@ encoders = joblib.load("encoders")
 #           Récupération du modèle 
 #---------------------------------------------------------------
 # Récupération du modèle en local (en attendant de mettre en place MLFlow)
-model = load_joblib_from_s3(bucket,"app_immo/joblib/model")
+model = joblib.load("model")
 
 # Récupération du modèle sur MlFlow
 
