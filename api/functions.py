@@ -41,21 +41,23 @@ import os
 # encoders = load_joblib_from_s3(bucket,"app_immo/joblib/encoders") 
 
 # Récupération en local
-scalers = joblib.load("api/scalers")
-encoders = joblib.load("api/encoders")
+# scalers = joblib.load("api/scalers")
+# encoders = joblib.load("api/encoders")
 
 #---------------------------------------------------------------
 #           Récupération du modèle 
 #---------------------------------------------------------------
 # Récupération du modèle en local (en attendant de mettre en place MLFlow)
-model = joblib.load("api/model")
+# model = joblib.load("api/model")
 
 # Récupération du modèle sur MlFlow
 
-# mlflow.set_tracking_uri('...') 
-# logged_model = '...' # le run du modèle
-# model = mlflow.sklearn.load_model(logged_model)
+mlflow.set_tracking_uri('https://mlflowimmoappkevleg-737621d410d0.herokuapp.com/') 
+logged_model = 'runs:/6603c90f735f4ddfac3852b04bfbc26d/ImmoApp'
+model = mlflow.sklearn.load_model(logged_model)
 
+scalers = joblib.load("scalers.joblib")
+encoders = joblib.load("encoders.joblib")
 
 
 class Config_donnees(BaseModel):
