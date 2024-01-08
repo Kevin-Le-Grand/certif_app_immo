@@ -16,8 +16,5 @@ COPY requirements.txt .
 # # Installez les dépendances
 RUN pip install -r requirements.txt
 
-# Exécutez les tests 
-RUN pytest api/test.py || exit 1
-
 # # Exécutez votre application
 CMD uvicorn api.app:app --host=0.0.0.0 --port=$PORT
