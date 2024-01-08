@@ -1,17 +1,13 @@
 FROM continuumio/miniconda3
 
-WORKDIR /home/app/
+WORKDIR /home/app
 
-RUN apt-get update && apt-get install -y git nano
+RUN apt-get update
 
-# RUN git clone https://github.com/rastakoer/certif_app_immo.git --branch model --single-branch .
+RUN pip install psycopg2-binary boto3 mlflow
 
-# RUN ls -R
-
-COPY requirements.txt .
-
-COPY Procfile .
-
-RUN pip install -r requirements.txt
-
-# CMD ["python", "model/config_mlflow_heroku.py"]
+CMD mlflow server \
+    --port $PORT \
+    --host 0.0.0.0 \
+    --artifacts-destination $ARTIFACT_STORE_URI \
+    --backend-store-uri $BACKEND_STORE_URI 
