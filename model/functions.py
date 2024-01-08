@@ -16,8 +16,11 @@ def loading_data() -> pd.DataFrame:
     - datas (pd.DataFrame) : Data frame avec les données récupérées sur RDS
     """
     print("Chargement des données en cours...")
+
     engine = connection_with_sqlalchemy("datagouv")
     print("Création engine sqlalchemy OK")
+
+    # Requête permettant de récupérer les données
     query="""
     SELECT 
         V.*,
@@ -32,6 +35,7 @@ def loading_data() -> pd.DataFrame:
     INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION
     WHERE V.MONTANT>12000;
     """
+    # Utilisation de sqlalchemy pour transformer la requête en dataframe
     datas = pd.read_sql(query, engine)
     # Fermeture de la connection
     engine.dispose()  
@@ -49,13 +53,11 @@ def filtrer_outliers(groupe: pd.DataFrame) -> pd.DataFrame:
     Returns:
     - pd.DataFrame : DataFrame avec les outliers filtrés.
     """
-    print("Filtrage des outliers en cours...")
     Q1 = groupe['MONTANT'].quantile(0.25)
     Q3 = groupe['MONTANT'].quantile(0.75)
     IQR = Q3 - Q1  # Range interquartile
     borne_inf = Q1 - 1.5 * IQR
     borne_sup = Q3 + 1.5 * IQR
-    print("Filtrage des outliers OK")
     return groupe[(groupe['MONTANT'] >= borne_inf) & (groupe['MONTANT'] <= borne_sup)]
                    
 
@@ -151,7 +153,9 @@ def train_model(df: pd.DataFrame) ->(pd.DataFrame , dict, dict,list, list):
     # Suppression des lignes dupliquées
     df = df.drop_duplicates()
     # Suppression des outliers
+    print("Filtrage des outliers en cours...")
     df = df.groupby('Name_region').apply(filtrer_outliers)
+    print("Filtrage des outliers OK")
     # Reset de L'index
     df = df.reset_index(drop=True)
     df, encoders, scalers, non_numerical, features= encod_scal(df)

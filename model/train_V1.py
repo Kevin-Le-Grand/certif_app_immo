@@ -17,6 +17,7 @@ def main():
     # Préparation des données
     model, _, _, X_train, y_train = train_model(df)
 
+    print("Chargement des artifacts avec mlflow en cours")
     # Connexion à MLflow
     mlflow.set_tracking_uri("https://mlflowimmoappkevleg-737621d410d0.herokuapp.com/")
 
