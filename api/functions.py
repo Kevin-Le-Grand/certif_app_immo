@@ -56,8 +56,8 @@ mlflow.set_tracking_uri('https://mlflowimmoappkevleg-737621d410d0.herokuapp.com/
 logged_model = 'runs:/6603c90f735f4ddfac3852b04bfbc26d/ImmoApp'
 model = mlflow.sklearn.load_model(logged_model)
 
-scalers = joblib.load("scalers.joblib")
-encoders = joblib.load("encoders.joblib")
+encoders = joblib.load(mlflow.artifacts.download_artifacts("mlflow-artifacts:/1/6603c90f735f4ddfac3852b04bfbc26d/artifacts/encoders.joblib"))
+scalers = joblib.load(mlflow.artifacts.download_artifacts("mlflow-artifacts:/1/6603c90f735f4ddfac3852b04bfbc26d/artifacts/scalers.joblib"))
 
 
 class Config_donnees(BaseModel):
