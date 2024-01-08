@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from api import functions
+from functions import *
 
 
 # Config apparence API
@@ -19,16 +19,16 @@ app = FastAPI(
 
 
 # Définir une route POST pour la commande
-@app.post("/predict", response_model=functions.reponse_model, summary="Prédictions")
-def predict(n:functions.Config_donnees):
+@app.post("/predict", response_model=reponse_model, summary="Prédictions")
+def predict(n:Config_donnees):
     """
     Route permettant de réaliser une prédiction
     """
     # Appel de la fonction servant à labelliser puis standardiser
-    transform = functions.encod_scal(n)
+    transform = encod_scal(n)
     
     # Appel de la fonction servant à réaliser les prédictions
-    prediction= functions.predictions(transform)
+    prediction= predictions(transform)
     # Réponse au format json
     return prediction
 
