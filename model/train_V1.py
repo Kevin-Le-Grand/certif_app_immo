@@ -4,10 +4,10 @@ import mlflow
 from mlflow.models import infer_signature
 from functions import train_model,loading_data
 from dotenv import load_dotenv
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
 # # Chargement des variable de connection aws et RDS en local
-# load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
+load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     model, _, _, X_train, y_train = train_model(df)
 
     # Connexion à MLflow
-    mlflow.set_tracking_uri("https://mlflowimmoapp3-09b1952ab959.herokuapp.com/")
+    mlflow.set_tracking_uri("https://mlflowimmoappkevleg-737621d410d0.herokuapp.com/")
 
     # Configuration de l'autolog
     mlflow.sklearn.autolog()
@@ -56,7 +56,7 @@ def main():
         mlflow.sklearn.log_model(model,
                                 "ImmoApp",
                                 input_example = X_train.head(1),
-                                registered_model_name = "RFR")
+                                registered_model_name = model_name)
     
 if __name__ == '__main__':
     main()

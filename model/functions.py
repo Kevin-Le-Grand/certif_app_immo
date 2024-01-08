@@ -15,8 +15,9 @@ def loading_data() -> pd.DataFrame:
     Returns:
     - datas (pd.DataFrame) : Data frame avec les données récupérées sur RDS
     """
+    print("Chargement des données en cours...")
     engine = connection_with_sqlalchemy("datagouv")
-
+    print("Création engine sqlalchemy OK")
     query="""
     SELECT 
         V.*,
@@ -29,11 +30,12 @@ def loading_data() -> pd.DataFrame:
     INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
     INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
     INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION
-    WHERE MONTANT>10000;
+    WHERE V.MONTANT>12000;
     """
     datas = pd.read_sql(query, engine)
     # Fermeture de la connection
     engine.dispose()  
+    print("Chargement des données ok")
     return datas
 
 
@@ -47,11 +49,13 @@ def filtrer_outliers(groupe: pd.DataFrame) -> pd.DataFrame:
     Returns:
     - pd.DataFrame : DataFrame avec les outliers filtrés.
     """
+    print("Filtrage des outliers en cours...")
     Q1 = groupe['MONTANT'].quantile(0.25)
     Q3 = groupe['MONTANT'].quantile(0.75)
     IQR = Q3 - Q1  # Range interquartile
     borne_inf = Q1 - 1.5 * IQR
     borne_sup = Q3 + 1.5 * IQR
+    print("Filtrage des outliers OK")
     return groupe[(groupe['MONTANT'] >= borne_inf) & (groupe['MONTANT'] <= borne_sup)]
                    
 
@@ -70,6 +74,7 @@ def encod_scal(df : pd.DataFrame) -> (pd.DataFrame , dict, dict):
     - non_numerical (list) : Liste des variables catégorielle
     - features (list) : Liste des colonnes à standardiser
     """
+    print("Normalisation des données en cours...")
     # Sélection des variables non numériques
     non_numerical = df.select_dtypes(exclude=['number']).columns.to_list()
     # Sélection des colonnes à traiter (toutes sauf la valeur à prédire)
@@ -90,6 +95,7 @@ def encod_scal(df : pd.DataFrame) -> (pd.DataFrame , dict, dict):
         scaler = StandardScaler()
         df[col] = scaler.fit_transform(df[col].values.reshape(-1, 1))
         scalers[col] = scaler
+    print("Normalisation des données OK")
     return df,encoders,scalers, non_numerical, features
 
 def reverse_scal_encod(df : pd.DataFrame, encoders : dict, scalers : dict,
@@ -135,6 +141,7 @@ def train_model(df: pd.DataFrame) ->(pd.DataFrame , dict, dict,list, list):
     Remarque : Cette fonction utilise d'autres fonctions pour la labellisation et
     la mise à l'échelle des données
     """
+    print("Entraînement en cours...")
     # Sélection des données non nulles
     df = df.loc[(df.NB_PIECES>0) & (df.SURFACE_BATI>0),:]
     # Suppression des valeurs extremes en région Bretagne
@@ -153,4 +160,5 @@ def train_model(df: pd.DataFrame) ->(pd.DataFrame , dict, dict,list, list):
     # Entraînement des données
     model=RandomForestRegressor()
     model.fit(X_train,y_train)
+    print("Entraînement OK")
     return model, encoders, scalers, X_train, y_train
