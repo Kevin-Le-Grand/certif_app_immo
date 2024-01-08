@@ -4,5 +4,5 @@ datas_rds.csv
 .vscode
 push.sh
 model
-scalers
-encoders
+scalers.joblib
+encoders.joblib

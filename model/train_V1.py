@@ -3,11 +3,8 @@ import numpy as np
 import mlflow
 from mlflow.models import infer_signature
 from functions import train_model,loading_data
-from dotenv import load_dotenv
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
-
-# # Chargement des variable de connection aws et RDS en local
-load_dotenv(dotenv_path="/home/kevin/workspace/certif_app_immo/model/.venv/.local")
+import joblib
 
 
 def main():
@@ -15,7 +12,7 @@ def main():
     df = loading_data()
 
     # Préparation des données
-    model, _, _, X_train, y_train = train_model(df)
+    model, encoders, scalers, X_train, y_train = train_model(df)
 
     print("Chargement des artifacts avec mlflow en cours")
     # Connexion à MLflow
@@ -26,6 +23,8 @@ def main():
 
     # Connexion à une expérience
     experiment_name = "First_model"
+    run_name = "Training_V1"
+    model_name = "RFR"
 
     # Vérification que l'experience existe
     experiment = mlflow.get_experiment_by_name(experiment_name)
@@ -36,9 +35,7 @@ def main():
         # On récupère à nouveau l'expérience après la création
         experiment = mlflow.get_experiment_by_name(experiment_name)
 
-    with mlflow.start_run(experiment_id = experiment.experiment_id, run_name='Training_V1'):
-
-        model_name = "RFR"
+    with mlflow.start_run(experiment_id = experiment.experiment_id, run_name=run_name):
 
         # Calcul des métriques
         r2 = model.score(X_train, y_train)
@@ -58,6 +55,15 @@ def main():
                                 "ImmoApp",
                                 input_example = X_train.head(1),
                                 registered_model_name = model_name)
-    
+        
+        # Sauvegarde des encoders et scalers
+        joblib.dump(encoders, "./encoders.joblib")
+        joblib.dump(scalers, "./scalers.joblib")
+        mlflow.log_artifact("./encoders.joblib")
+        mlflow.log_artifact("./scalers.joblib")
+
+        # Fermeture du run
+        mlflow.end_run()           
+
 if __name__ == '__main__':
     main()
