@@ -1,9 +1,27 @@
 import unittest
-from functions import api_predict
+import os
+from functions import api_predict,create_connection
 
 class TestAPICalls(unittest.TestCase):
-    def test_api_predict_success(self):
+    def test_create_connection(self):
+        # Remplacez ces valeurs par les informations de votre base de données de test
+        host = os.environ['DB_HOST']
+        user = os.environ['DB_USER']
+        password = os.environ['DB_PASSWORD']
+        port = int(os.environ['DB_PORT'])
+        database = "datagouv"
 
+        # Appel de la fonction à tester
+        cursor = create_connection(host, user, password, port, database)
+
+        # Vérification que le cursor n'est pas None (indicatif d'une connexion réussie)
+        self.assertIsNotNone(cursor)
+
+        # Fermer la connexion après les tests
+        cursor.close()
+
+
+    def test_api_predict_success(self):
         # Appel de la fonction de l'API avec des données factices
         data = {'SURFACE_BATI' :250,
                 'NB_PIECES' : 5,

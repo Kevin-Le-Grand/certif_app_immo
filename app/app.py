@@ -30,6 +30,13 @@ st.markdown(
 
 
 def main():
+    # Connection avec la base de données
+    cursor = create_connection(os.environ['DB_HOST'],
+                               os.environ['DB_USER'],
+                               os.environ['DB_PASSWORD'],
+                               int(os.environ['DB_PORT']),
+                               "datagouv")
+    
     # Affichage du logo
     st.sidebar.markdown("""<div style="display: flex; justify-content: center; align-items: center;">
                         <img src="https://raw.githubusercontent.com/rastakoer/certif_app_immo/application/app/Logo.png" alt="Logo" width="200">

@@ -19,12 +19,14 @@ import requests
 #//////////////////////////////////////////////////////////////////////////////
 #                          Database RDS AWS
 #//////////////////////////////////////////////////////////////////////////////
-db = pymysql.connect(host=os.environ['DB_HOST'],
-user=os.environ['DB_USER'],
-password=os.environ['DB_PASSWORD'],
-port=int(os.environ['DB_PORT']))
-cursor= db.cursor()
-cursor.execute("USE datagouv;")
+def create_connection(host,user,password,port,database):
+    db = pymysql.connect(host=host,
+    user=user,
+    password=password,
+    port=port,
+    database=database)
+    cursor= db.cursor()
+    return cursor
 
 
 #//////////////////////////////////////////////////////////////////////////////
