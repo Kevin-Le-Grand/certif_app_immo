@@ -36,9 +36,9 @@ def affichage_ventes_proximite(commune : list) -> str:
     à l'aide de Folium
 
     Args :
-        liste : ['Normandie','Calvados','Caen']
+        commune (list) : Liste de type ['Normandie','Calvados','Caen']
     Returns:
-        str : <html>.....</html>
+        str (html): <html>.....</html>
     """
     # Requête pour sélectionner les ventes sur la communes
     query=f"""
@@ -51,11 +51,11 @@ def affichage_ventes_proximite(commune : list) -> str:
     JOIN DEPARTEMENTS d ON c.ID_DEPT = d.ID_DEPT
     JOIN REGIONS r ON d.ID_REGION = r.ID_REGION
     JOIN TYPES_BIENS t ON t.ID_TYPE_BIEN=v.ID_TYPE_BIEN
-    WHERE c.NAME_COMMUNE = '{commune[2]}' 
-        AND d.Name_departement = '{commune[1]}' 
-        AND r.Name_region = '{commune[0]}';
+    WHERE c.NAME_COMMUNE = %s
+        AND d.Name_departement = %S
+        AND r.Name_region = %s;
     """
-    cursor.execute(query)
+    cursor.execute(query,(commune[2],commune[1],commune[0]))
     result = cursor.fetchall()
     # Transformation de la requête en data frame
     df = pd.DataFrame(result)
