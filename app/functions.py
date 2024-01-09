@@ -80,23 +80,27 @@ def check_login(conn, username, password):
             return False
 
 def authentification_page(conn):
-    st.title("Application Streamlit avec Authentification")
-    st.subheader("Connexion")
-    username = st.text_input("Nom d'utilisateur")
-    password = st.text_input("Mot de passe", type="password")
+    st.title("Login Immoapp")
     
-    if st.button("Se connecter"):
-        if check_login(conn, username, password):
-            st.session_state.username = username
-        else:
-            st.error("Nom d'utilisateur ou mot de passe incorrect.")
+    col1, col2 ,col3= st.columns(3)
+    with col2:
+        st.subheader("Connexion")
+        username = st.text_input("Nom d'utilisateur")
+        password = st.text_input("Mot de passe", type="password")
+    
+        if st.button("Se connecter"):
+            if check_login(conn, username, password):
+                st.session_state.username = username
+            else:
+                st.error("Nom d'utilisateur ou mot de passe incorrect.")
 
-    st.subheader("Créer un nouvel utilisateur")
-    new_username = st.text_input("Nouveau nom d'utilisateur")
-    new_password = st.text_input("Nouveau mot de passe", type="password")
+    with col2:
+        st.subheader("Créer un nouvel utilisateur")
+        new_username = st.text_input("Nouveau nom d'utilisateur")
+        new_password = st.text_input("Nouveau mot de passe", type="password")
 
-    if st.button("Créer utilisateur"):
-        add_user(conn, new_username, new_password)
+        if st.button("Créer utilisateur"):
+            add_user(conn, new_username, new_password)
 
 
 #//////////////////////////////////////////////////////////////////////////////
