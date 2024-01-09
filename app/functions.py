@@ -202,7 +202,7 @@ def formulaire(cursor):
 #//////////////////////////////////////////////////////////////////////////////
 # Affichage des pages en fonctions de l'avancement du remplissage du formulaire
 #//////////////////////////////////////////////////////////////////////////////
-def formulaire_valide():
+def formulaire_valide(cursor):
     # Appel de l'API
     prediction = api_predict({'SURFACE_BATI' :st.session_state.surface_bati,
                             'NB_PIECES' : st.session_state.nb_pieces,
