@@ -1,3 +1,4 @@
+import streamlit as st
 import pandas as pd
 import pymysql
 import os
@@ -32,13 +33,14 @@ def create_connection(host,user,password,port,database):
 #//////////////////////////////////////////////////////////////////////////////
 #                          Création de la carte interactive
 #//////////////////////////////////////////////////////////////////////////////
-def affichage_ventes_proximite(commune : list) -> str:
+def affichage_ventes_proximite(commune : list, cursor) -> str:
     """
     Fonction permettant d'afficher sur une carte les ventes effectuées sur une commune  
     à l'aide de Folium
 
     Args :
-        commune (list) : Liste de type ['Normandie','Calvados','Caen']
+    - commune (list) : Liste de type ['Normandie','Calvados','Caen']
+    - cursor: Connexion à la base de données
     Returns:
         str (html): <html>.....</html>
     """
@@ -98,6 +100,106 @@ def affichage_ventes_proximite(commune : list) -> str:
     folium_html = folium_map.get_root().render()
     return  folium_html
 
+#//////////////////////////////////////////////////////////////////////////////
+#                          Formulaire
+#//////////////////////////////////////////////////////////////////////////////
+def formulaire(cursor):
+    """ 
+    Fonction permettant l'affichage et le remplissage du formulaire dans la 
+    sidebar de l'application.
+
+    Args :
+    - cursor : Permet la connection avec la base de données
+
+    Remarque :
+    La fonction va chercher les informations dans la base de données en partant 
+    de la géolocalisation la plus large à la plus étroite (région, département, commune)
+    puis le type de bien, le nombre de pièces...
+    """
+    # Ajout d'un menu déroulant avec les régions:
+    query="""
+    SELECT Name_region FROM REGIONS;
+    """
+    cursor.execute(query)
+    resultats = cursor.fetchall()
+    liste_regions=[row[0] for row in resultats]
+
+    option_par_defaut = "Sélectionnez une région"
+    st.session_state.region = st.sidebar.selectbox("Sélectionnez une région", 
+                                [option_par_defaut]+liste_regions)
+
+    if st.session_state.region!="Sélectionnez une région":
+        # Ajout d'un menu déroulant avec les départements:
+        query=f"""
+        SELECT * FROM DEPARTEMENTS AS A
+        JOIN (
+        SELECT ID_REGION, Name_region
+        FROM REGIONS
+        )AS B
+        ON A.ID_REGION=B.ID_REGION
+        WHERE B.Name_region="{st.session_state.region}";
+        """
+        cursor.execute(query)
+        resultats = cursor.fetchall()
+        liste_departements=[row[1] for row in resultats]
+        option_par_defaut="Sélectionnez un département"
+        st.session_state.departement = st.sidebar.selectbox("Sélectionnez un département", 
+                                [option_par_defaut]+liste_departements)
+        
+
+        if st.session_state.departement!="Sélectionnez un département":
+            # Ajout d'un menu déroulant avec les communes
+            query=f"""
+            SELECT * FROM COMMUNES AS A
+            JOIN (
+            SELECT ID_DEPT, Name_departement
+            FROM DEPARTEMENTS
+            )AS B
+            ON A.ID_DEPT=B.ID_DEPT
+            WHERE B.Name_departement='{st.session_state.departement}';
+            """
+            cursor.execute(query)
+            resultats = cursor.fetchall()
+            liste_communes=[row[1] for row in resultats]
+            option_par_defaut="Sélectionnez une commune"
+            st.session_state.commune = st.sidebar.selectbox("Sélectionnez une commune", 
+                                [option_par_defaut]+liste_communes)
+            if st.session_state.commune!="Sélectionnez une commune":
+                st.session_state.type_de_bien = st.sidebar.selectbox("Sélectionnez le type de logement :", 
+                                        ["Faites votre choix"]+["Maison", "Appartement"])
+                if st.session_state.type_de_bien!="Faites votre choix":
+                    st.session_state.nb_pieces=st.sidebar.selectbox("De combien de pièces est composé le bien", 
+                                    [0]+[i for i in range(0,15)])
+                    if st.session_state.nb_pieces!=0:
+                        st.session_state.surface_bati = st.sidebar.text_input("Surface habitable", "")
+                        if st.session_state.surface_bati:
+                            if st.session_state.type_de_bien=="Maison":
+                                st.session_state.surface_terrain=st.sidebar.text_input("Surface du terrain", "")
+                                if st.session_state.surface_terrain:
+                                    st.session_state.valid_formulaire = st.sidebar.button("Valider")
+                                else:
+                                    st.write("Veuillez entrer la surface de votre terrain")
+                            else:
+                                st.session_state.surface_terrain=0
+                                st.session_state.valid_formulaire = st.sidebar.button("Valider")
+                        else:
+                            st.write ("Veuillez indiquer une surface habitable")
+                    else:
+                        st.write("Sélectionnez le nombre de pièces")
+                else:
+                    st.write("Sélectionner un type de bien")
+            else:
+                st.write("Sélectionnez une commune")
+        else:
+            st.write("Veuillez choisir un département")
+    else:
+        st.write("Veuillez choisir une région")
+    return
+
+
+#//////////////////////////////////////////////////////////////////////////////
+#                          échange avec l'API
+#//////////////////////////////////////////////////////////////////////////////
 def api_predict(data: dict) -> dict:
     """
     Fonction permettant de faire l'appel à l'api et de recevoir une prédiction
@@ -111,3 +213,4 @@ def api_predict(data: dict) -> dict:
     response = requests.post('https://apiimmoappkevleg-7337fa262339.herokuapp.com/predict',
                               json=data)
     return response.json()
+
