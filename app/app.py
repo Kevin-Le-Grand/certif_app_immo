@@ -24,6 +24,9 @@ def main():
 
         # État du formulaire False => formulaire non validé
         st.session_state.valid_formulaire=False
+        st.session_state.commune="Sélectionnez une commune"
+        st.session_state.departement="Sélectionnez un département"
+        st.session_state.region="Sélectionnez une région"
         # Fonction pour remplir le formulaire
         formulaire(cursor)
         
