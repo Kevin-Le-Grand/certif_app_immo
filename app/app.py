@@ -41,10 +41,10 @@ def main():
             st.title("Page sur les statistiques de la commune à venir...")
         # Affichage des statistiques sur le département :
         elif st.session_state.departement!="Sélectionnez un département":
-            st.title("Page sur les statistiques de la commune à venir...")
+            st.title("Page sur les statistiques du département à venir...")
         # Affichage des statistiques sur la région
         elif st.session_state.region!="Sélectionnez une région":
-            st.title("Page sur les statistiques de la commune à venir...")
+            st.title("Page sur les statistiques de la région à venir...")
         # Affichage de la page d'accueil
         else:
             st.title("Page d'accueil venir...")
