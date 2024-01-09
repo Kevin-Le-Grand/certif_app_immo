@@ -52,7 +52,7 @@ def affichage_ventes_proximite(commune : list) -> str:
     JOIN REGIONS r ON d.ID_REGION = r.ID_REGION
     JOIN TYPES_BIENS t ON t.ID_TYPE_BIEN=v.ID_TYPE_BIEN
     WHERE c.NAME_COMMUNE = %s
-        AND d.Name_departement = %S
+        AND d.Name_departement = %s
         AND r.Name_region = %s;
     """
     cursor.execute(query,(commune[2],commune[1],commune[0]))
