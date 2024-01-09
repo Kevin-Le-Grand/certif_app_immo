@@ -12,13 +12,13 @@ class TestAPICalls(unittest.TestCase):
         database = "datagouv"
 
         # Appel de la fonction à tester
-        cursor = create_connection(host, user, password, port, database)
+        conn = create_connection(host, user, password, port, database)
 
         # Vérification que le cursor n'est pas None (indicatif d'une connexion réussie)
-        self.assertIsNotNone(cursor)
+        self.assertIsNotNone(conn)
 
         # Fermer la connexion après les tests
-        cursor.close()
+        conn.close()
 
 
     def test_api_predict_success(self):

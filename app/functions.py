@@ -24,12 +24,12 @@ import hashlib
 #                          Database RDS AWS
 #//////////////////////////////////////////////////////////////////////////////
 def create_connection(host,user,password,port,database):
-    db = pymysql.connect(host=host,
+    conn = pymysql.connect(host=host,
     user=user,
     password=password,
     port=port,
     database=database)
-    return
+    return conn
 
 #//////////////////////////////////////////////////////////////////////////////
 #                          Page d'authentification
