@@ -12,6 +12,9 @@ from folium.plugins import MarkerCluster
 # Librairie pour l'api
 import requests
 
+# Librairie pour le cryptage
+import hashlib 
+
 # #//////////////////////////////////////////////////////////////////////////////
 # #                      Chargement des variable en local
 # #//////////////////////////////////////////////////////////////////////////////
@@ -26,8 +29,74 @@ def create_connection(host,user,password,port,database):
     password=password,
     port=port,
     database=database)
-    cursor= db.cursor()
-    return cursor
+    return
+
+#//////////////////////////////////////////////////////////////////////////////
+#                          Page d'authentification
+#//////////////////////////////////////////////////////////////////////////////
+# Création de la table si elle n'existe pas
+def create_user_table(conn,cursor):
+    """ 
+    fonction permettant de créer la table users si elle n'a pas encore été créée
+    """
+    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL
+            )
+        """)
+    conn.commit()
+    return
+
+# Fonction pour ajouter un utilisateur à la base de données avec mot de passe crypté
+def add_user(conn, username, password):
+    with conn.cursor() as cursor:
+        # Vérifier si l'utilisateur existe déjà
+        cursor.execute('SELECT id FROM users WHERE username = %s', (username,))
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            st.warning("Cet utilisateur existe déjà. Veuillez choisir un autre nom d'utilisateur.")
+        else:
+            # Ajouter l'utilisateur si celui-ci n'existe pas encore
+            hashed_password = hashlib.md5(password.encode('utf-8')).hexdigest()  # Utilisation de MD5 pour le hachage
+            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
+            conn.commit()
+            st.success("Utilisateur créé avec succès. Vous pouvez maintenant vous connecter.")
+
+
+
+# Fonction pour vérifier les informations de connexion
+def check_login(conn, username, password):
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT password FROM users WHERE username = %s', (username,))
+        result = cursor.fetchone()
+        if result:
+            # Vérifier si le mot de passe correspond en utilisant MD5
+            hashed_password_input = hashlib.md5(password.encode('utf-8')).hexdigest()
+            return hashed_password_input == result[0]
+        else:
+            return False
+
+def authentification_page(conn):
+    st.title("Application Streamlit avec Authentification")
+    st.subheader("Connexion")
+    username = st.text_input("Nom d'utilisateur")
+    password = st.text_input("Mot de passe", type="password")
+    
+    if st.button("Se connecter"):
+        if check_login(conn, username, password):
+            st.session_state.username = username
+        else:
+            st.error("Nom d'utilisateur ou mot de passe incorrect.")
+
+    st.subheader("Créer un nouvel utilisateur")
+    new_username = st.text_input("Nouveau nom d'utilisateur")
+    new_password = st.text_input("Nouveau mot de passe", type="password")
+
+    if st.button("Créer utilisateur"):
+        add_user(conn, new_username, new_password)
 
 
 #//////////////////////////////////////////////////////////////////////////////
