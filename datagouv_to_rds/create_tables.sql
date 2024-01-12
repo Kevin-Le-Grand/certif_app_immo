@@ -2,7 +2,6 @@
 #        Script MySQL.
 #------------------------------------------------------------
 
-
 #------------------------------------------------------------
 # Table: REGIONS
 #------------------------------------------------------------
@@ -12,7 +11,6 @@ CREATE TABLE IF NOT EXISTS REGIONS(
         Name_region Varchar (50) NOT NULL
 	,CONSTRAINT REGIONS_PK PRIMARY KEY (ID_REGION)
 )ENGINE=InnoDB;
-
 
 #------------------------------------------------------------
 # Table: DEPARTEMENTS
@@ -27,7 +25,6 @@ CREATE TABLE IF NOT EXISTS DEPARTEMENTS(
 	,CONSTRAINT DEPARTEMENTS_REGIONS_FK FOREIGN KEY (ID_REGION) REFERENCES REGIONS(ID_REGION)
 )ENGINE=InnoDB;
 
-
 #------------------------------------------------------------
 # Table: TYPES_BIENS
 #------------------------------------------------------------
@@ -37,7 +34,6 @@ CREATE TABLE IF NOT EXISTS TYPES_BIENS(
         NAME_TYPE_BIEN Varchar (50) NOT NULL
 	,CONSTRAINT TYPES_BIENS_PK PRIMARY KEY (ID_TYPE_BIEN)
 )ENGINE=InnoDB;
-
 
 #------------------------------------------------------------
 # Table: COMMUNES
@@ -51,7 +47,6 @@ CREATE TABLE IF NOT EXISTS COMMUNES(
 
 	,CONSTRAINT COMMUNES_DEPARTEMENTS_FK FOREIGN KEY (ID_DEPT) REFERENCES DEPARTEMENTS(ID_DEPT)
 )ENGINE=InnoDB;
-
 
 #------------------------------------------------------------
 # Table: VENTES
