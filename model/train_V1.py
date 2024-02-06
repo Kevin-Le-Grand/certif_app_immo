@@ -22,7 +22,7 @@ def main():
     mlflow.sklearn.autolog()
 
     # Connexion à une expérience
-    experiment_name = "First_model"
+    experiment_name = "test"
     run_name = "Training_V1"
     model_name = "RFR"
 
@@ -38,7 +38,7 @@ def main():
     with mlflow.start_run(experiment_id = experiment.experiment_id, run_name=run_name):
 
         # Calcul des métriques
-        r2 = model.score(y_train, model.predict(X_train))
+        r2 = model.score(X_train, y_train)
         mse = mean_squared_error(y_train, model.predict(X_train))
         rmse = np.sqrt(mse)
         mae = mean_absolute_error(y_train, model.predict(X_train))
