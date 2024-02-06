@@ -3,7 +3,7 @@ import numpy as np
 import mlflow
 from mlflow.models import infer_signature
 from functions import train_model,loading_data
-from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error,mean_squared_log_error
 import joblib
 
 
@@ -38,11 +38,12 @@ def main():
     with mlflow.start_run(experiment_id = experiment.experiment_id, run_name=run_name):
 
         # Calcul des métriques
-        r2 = model.score(X_train, y_train)
+        r2 = model.score(y_train, model.predict(X_train))
         mse = mean_squared_error(y_train, model.predict(X_train))
         rmse = np.sqrt(mse)
         mae = mean_absolute_error(y_train, model.predict(X_train))
         mape = mean_absolute_percentage_error(y_train, model.predict(X_train))
+        msle = mean_squared_log_error(y_train, model.predict(X_train))
 
         # Enregistrement des métriques
         mlflow.log_metric("train_r2", r2)
@@ -50,6 +51,7 @@ def main():
         mlflow.log_metric("train_rmse", rmse)
         mlflow.log_metric("train_mae", mae)
         mlflow.log_metric("train_mape", mape)
+        mlflow.log_metric("train_msle", msle)
 
         mlflow.sklearn.log_model(model,
                                 "ImmoApp",
