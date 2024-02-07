@@ -3,7 +3,7 @@ from functions import sqlengine
 from sqlalchemy import text
 import pandas as pd
 
-connection = sqlengine()
+engine = sqlengine()
 
 def accueil():
     for i in ["Appartement","Maison"]:
@@ -16,7 +16,7 @@ def accueil():
         WHERE NAME_TYPE_BIEN='Maison'
         AND R.Name_region NOT IN("Martinique","Guyane","La Réunion","Mayotte");
         """
-        datas = pd.read_sql(con=connection, sql=text(query))
+        datas = pd.read_sql(con=engine.connect(), sql=text(query))
         st.subheader("Prix moyen en France")
         col1, col2 = st.columns([3,1])
         with col1:

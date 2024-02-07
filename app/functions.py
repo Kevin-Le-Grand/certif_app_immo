@@ -34,8 +34,8 @@ def create_connection(host,user,password,port,database):
 
 def sqlengine():
     engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
-    connection = engine.connect()
-    return connection
+    
+    return engine
 #//////////////////////////////////////////////////////////////////////////////
 #                          Page d'authentification
 #//////////////////////////////////////////////////////////////////////////////
