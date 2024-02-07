@@ -7,7 +7,7 @@ engine = sqlengine()
 
 def accueil():
     for i in ["Appartement","Maison"]:
-        query="""SELECT MEAN(MONTANT) AS MeanMontant
+        query="""SELECT AVG(MONTANT) AS AVGMontant
         FROM VENTES V
         INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
         INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
@@ -22,7 +22,7 @@ def accueil():
         with col1:
             st.text(i)
         with col2:
-            st.text(f"{datas['MeanMontant'].iloc[0]} €")
+            st.text(f"{datas.iloc[0,0]} €")
         
 
 def region():
