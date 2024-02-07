@@ -50,7 +50,7 @@ def encod_scal(X_train : pd.DataFrame, X_test : pd.DataFrame) -> (pd.DataFrame, 
     # Sélection des variables non numériques
     non_numerical = X_train.select_dtypes(exclude=['number']).columns.to_list()
     # Sélection des colonnes à traiter (toutes sauf la valeur à prédire)
-    features = X_train.drop('MONTANT', axis=1).columns
+    features = X_train.columns.tolist()
 
     # Dictionnaire où seront stockés les LabelEncoder et Scaler afin
     # de pouvoir inverser la labellisation et la standardisation
@@ -70,6 +70,7 @@ def encod_scal(X_train : pd.DataFrame, X_test : pd.DataFrame) -> (pd.DataFrame, 
 
     # Utilisation des encoders et scaler pour transformer X_test
     for col, encoder in encoders.items():
+
         X_test[col] = encoder.transform(X_test[col])
     
     # Normalisation des données
@@ -140,6 +141,9 @@ def train_model(df: pd.DataFrame) ->(pd.DataFrame , dict, dict,list, list):
     nb_lines_train = int(df.shape[0]*0.8)
     df_train = df.iloc[:nb_lines_train,:]
     df_test = df.iloc[nb_lines_train:,:]
+    # Suppression des lignes dans X_test dont les ID_COMMUNE ne sont pas présents dans df_train
+    df_test = df_test[df_test['ID_COMMUNE'].isin(df_train['ID_COMMUNE'])]
+    # Séparation des données 
     y_train = df_train.loc[:,"MONTANT"]
     X_train = df_train.drop("MONTANT",axis=1)
     y_test = df_test.loc[:,"MONTANT"]
