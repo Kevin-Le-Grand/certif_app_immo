@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import make_scorer, r2_score
+from sqlalchemy import text
 
 
 def loading_data(query : str) -> pd.DataFrame:
@@ -23,7 +24,7 @@ def loading_data(query : str) -> pd.DataFrame:
     print("Création engine sqlalchemy OK")
 
     # Utilisation de sqlalchemy pour transformer la requête en dataframe
-    datas = pd.read_sql(query, engine)
+    datas = pd.read_sql(con=engine.connect(), sql=text(query))
     # Fermeture de la connection
     engine.dispose()  
     print("Chargement des données ok")

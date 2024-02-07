@@ -28,7 +28,8 @@ def main():
             WHERE V.MONTANT>15000
             AND T.NAME_TYPE_BIEN='{i}'
             AND V.SURFACE_BATI>0
-            AND V.NB_PIECES>0;
+            AND V.NB_PIECES>0
+            AND R.Name_region NOT IN("Martinique","Guyane","La Réunion","Mayotte");
             """
         else:
             query=f"""
@@ -47,7 +48,8 @@ def main():
             WHERE V.MONTANT>15000 AND V.MONTANT<6500000
             AND T.NAME_TYPE_BIEN='{i}'
             AND V.SURFACE_BATI>0
-            AND V.NB_PIECES>0;
+            AND V.NB_PIECES>0
+            AND R.Name_region NOT IN("Martinique","Guyane","La Réunion","Mayotte");
             """
         
         # Récupération des données
