@@ -1,16 +1,18 @@
 import pandas as pd
 from connection import connection_with_sqlalchemy
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import make_scorer, r2_score
 
 
-def loading_data() -> pd.DataFrame:
+def loading_data(query : str) -> pd.DataFrame:
     """ 
     Fonction permettant de de récupérer les données dans la base de données à
     l'aide de SQLAlchemy
     
-     Aucun argument n'est nécessaire.
+    Args:
+    - query (str) : Requête permettant de récupérer les données
 
     Returns:
     - datas (pd.DataFrame) : Data frame avec les données récupérées sur RDS
@@ -20,67 +22,34 @@ def loading_data() -> pd.DataFrame:
     engine = connection_with_sqlalchemy("datagouv")
     print("Création engine sqlalchemy OK")
 
-    # Requête permettant de récupérer les données
-    query="""
-    SELECT 
-        V.*,
-        T.NAME_TYPE_BIEN,
-        C.NAME_COMMUNE,
-        D.Name_departement,
-        R.Name_region
-    FROM VENTES V
-    INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
-    INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
-    INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
-    INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION
-    WHERE V.MONTANT>12000;
-    """
     # Utilisation de sqlalchemy pour transformer la requête en dataframe
     datas = pd.read_sql(query, engine)
     # Fermeture de la connection
     engine.dispose()  
     print("Chargement des données ok")
     return datas
+    
 
 
-def filtrer_outliers(groupe: pd.DataFrame) -> pd.DataFrame:
-    """
-    Fonction pour filtrer les outliers dans un groupe de données.
-
-    Args:
-    - groupe (pd.DataFrame) : Groupe de données sur lequel appliquer le filtrage.
-
-    Returns:
-    - pd.DataFrame : DataFrame avec les outliers filtrés.
-    """
-    Q1 = groupe['MONTANT'].quantile(0.25)
-    Q3 = groupe['MONTANT'].quantile(0.75)
-    IQR = Q3 - Q1  # Range interquartile
-    borne_inf = Q1 - 1.5 * IQR
-    borne_sup = Q3 + 1.5 * IQR
-    return groupe[(groupe['MONTANT'] >= borne_inf) & (groupe['MONTANT'] <= borne_sup)]
-                   
-
-
-def encod_scal(df : pd.DataFrame) -> (pd.DataFrame , dict, dict):
+def encod_scal(X_train : pd.DataFrame, X_test : pd.DataFrame) -> (pd.DataFrame, pd.DataFrame , dict, dict):
     """ 
-    Fonction permettant de labelliser puis de standardiser un Data frame  
+    Fonction permettant de labelliser puis de standardiser X_train et X_test  
 
     Args :
-    - df (pd.DataFrame) : Les données à labelliser puis standardiser
+    - X_train (pd.DataFrame) : Données d'entraînement
+    - X_test (pd.Dataframe) : Données de test
 
     Return :
-    - df (pd.DataFrame) : Les données labellisées et standardisées
+    - X_train (pd.DataFrame) : Les données d'entraînement labellisées et standardisées
+    - X_test (pd.Dataframe) : Les données de test labellisées et standardisées
     - encoders (dict) : Dictionnaire stockant les encodeurs pour chaque variable catégorielle
     - scalers (dict) : Dictionnaire stockant les scalers pour chaque variable numérique
-    - non_numerical (list) : Liste des variables catégorielle
-    - features (list) : Liste des colonnes à standardiser
     """
     print("Normalisation des données en cours...")
     # Sélection des variables non numériques
-    non_numerical = df.select_dtypes(exclude=['number']).columns.to_list()
+    non_numerical = X_train.select_dtypes(exclude=['number']).columns.to_list()
     # Sélection des colonnes à traiter (toutes sauf la valeur à prédire)
-    features = df.drop('MONTANT', axis=1).columns
+    features = X_train.drop('MONTANT', axis=1).columns
 
     # Dictionnaire où seront stockés les LabelEncoder et Scaler afin
     # de pouvoir inverser la labellisation et la standardisation
@@ -90,15 +59,23 @@ def encod_scal(df : pd.DataFrame) -> (pd.DataFrame , dict, dict):
     # Encodage des variables catégorielles
     for col in non_numerical:
         le = LabelEncoder()
-        df[col] = le.fit_transform(df[col])
+        X_train[col] = le.fit_transform(X_train[col])
         encoders[col] = le
     # Normalisation des données
     for col in features:
         scaler = StandardScaler()
-        df[col] = scaler.fit_transform(df[col].values.reshape(-1, 1))
+        X_train[col] = scaler.fit_transform(X_train[col].values.reshape(-1, 1))
         scalers[col] = scaler
+
+    # Utilisation des encoders et scaler pour transformer X_test
+    for col, encoder in encoders.items():
+        X_test[col] = encoder.transform(X_test[col])
+    
+    # Normalisation des données
+    for col, scaler in scalers.items():
+        X_test[col] = scaler.transform(X_test[col].values.reshape(-1, 1))
     print("Normalisation des données OK")
-    return df,encoders,scalers, non_numerical, features
+    return X_train, X_test, encoders,scalers
 
 def reverse_scal_encod(df : pd.DataFrame, encoders : dict, scalers : dict,
                        non_numerical: list, features: list) -> pd.DataFrame:
@@ -137,32 +114,56 @@ def train_model(df: pd.DataFrame) ->(pd.DataFrame , dict, dict,list, list):
     - model : Modèle entraîné
     - encoders (dict) : Dictionnaire stockant les encodeurs pour chaque variable catégorielle
     - scalers (dict) : Dictionnaire stockant les scalers pour chaque variable numérique
-    - non_numerical (list) : Liste des variables catégorielle
-    - features (list) : Liste des colonnes à standardiser
+    - X_test (pd.Dataframe) : Données de test pour effectué les mesures de performances
+    - y_test (pd.Series) : Prix de ventes
+    - best_params : Les paramètres les plus performant du modèle
 
     Remarque : Cette fonction utilise d'autres fonctions pour la labellisation et
     la mise à l'échelle des données
     """
     print("Entraînement en cours...")
-    # Sélection des données non nulles
-    df = df.loc[(df.NB_PIECES>0) & (df.SURFACE_BATI>0),:]
-    # Suppression des valeurs extremes en région Bretagne
-    df = df[~((df.Name_region=="Bretagne")&(df.MONTANT>6.5e6))]
-    # Sélection des données
-    df = df.loc[:,["SURFACE_BATI","NB_PIECES","NAME_TYPE_BIEN","Name_region","MONTANT"]]
     # Suppression des lignes dupliquées
     df = df.drop_duplicates()
-    # Suppression des outliers
-    print("Filtrage des outliers en cours...")
-    df = df.groupby('Name_region').apply(filtrer_outliers)
-    print("Filtrage des outliers OK")
+
+    # Tri du dataframe par ordre croissant de date
+    df['DATE_MUTATION'] = pd.to_datetime(df['DATE_MUTATION'])
+    df = df.sort_values(by='DATE_MUTATION', ascending=True)
+
+    # Suppression de la colonne date
+    df = df.drop("DATE_MUTATION", axis=1)
+
     # Reset de L'index
     df = df.reset_index(drop=True)
-    df, encoders, scalers, non_numerical, features= encod_scal(df)
+
     # Split de données
-    X_train, _, y_train, _ = train_test_split(df.iloc[:,:-1],df.iloc[:,-1],test_size=0.8,random_state=42)
-    # Entraînement des données
-    model=RandomForestRegressor()
+    nb_lines_train = int(df.shape[0]*0.8)
+    df_train = df.iloc[:nb_lines_train,:]
+    df_test = df.iloc[nb_lines_train:,:]
+    y_train = df_train.loc[:,"MONTANT"]
+    X_train = df_train.drop("MONTANT",axis=1)
+    y_test = df_test.loc[:,"MONTANT"]
+    X_test = df_test.drop("MONTANT", axis=1)
+
+    # Labellisation et standardisation de X_train
+    X_train, X_test, encoders, scalers = encod_scal(X_train,X_test)
+
+    # Utilisation de GridSearch CV pour l'entraînement du modèle
+    param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5, 10]
+    }   
+
+    # Type de métriques pour la recherche de meilleurs paramètres
+    scorer = make_scorer(r2_score)
+
+    # Entraînement avec les différentes paramètres
+    grid_search = GridSearchCV(RandomForestRegressor(), param_grid, cv=5, scoring=scorer)
+    grid_search.fit(X_train, y_train)
+    best_params = grid_search.best_params_
+    
+    # Entraînement des données avec les meilleurs paramètres
+    model=RandomForestRegressor(**best_params)
     model.fit(X_train,y_train)
     print("Entraînement OK")
-    return model, encoders, scalers, X_train, y_train
+    return model, encoders, scalers, X_test, y_test,best_params
