@@ -1,5 +1,6 @@
 import streamlit as st
 from functions import *
+from pages import *
 
 #//////////////////////////////////////////////////////////////////////////////
 #                          Main
@@ -47,7 +48,8 @@ def main():
             st.title("Page sur les statistiques de la région à venir...")
         # Affichage de la page d'accueil
         else:
-            st.title("Page d'accueil venir...")
+            st.title("Page d'accueil en construction...")
+            accueil()
 
 
 if __name__ == "__main__":

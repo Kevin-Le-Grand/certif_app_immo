@@ -3,6 +3,7 @@ import pandas as pd
 import pymysql
 import os
 # from dotenv import load_dotenv
+from sqlalchemy import create_engine
 
 # Librairies pour afficher les ventes sur une carte
 import folium
@@ -31,6 +32,10 @@ def create_connection(host,user,password,port,database):
     database=database)
     return conn
 
+def sqlengine():
+    engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
+    connection = engine.connect()
+    return connection
 #//////////////////////////////////////////////////////////////////////////////
 #                          Page d'authentification
 #//////////////////////////////////////////////////////////////////////////////
