@@ -39,8 +39,9 @@ def sqlengine():
     return engine
 
 engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
-   
-KPI_table = Table('"KPI"', MetaData(),
+
+
+kpi_table = Table("KPI", MetaData(),
                     Column('DATE_pred', Date),
                     Column('TYPE', String),
                     Column('REGION', String),
@@ -332,10 +333,11 @@ def log_grafana():
     Cette fonction ne prend aucun argument en entrée et ne produit aucune sortie.
     """
     with engine_postgre.connect() as conn:
-        stmt = update(KPI_table).values(DATE_pred=date.today(),
+        stmt = update(kpi_table).values(DATE_pred=date.today(),
                                         TYPE=st.session_state.type_de_bien,
                                         REGION=st.session_state.region,
                                         DEPARTEMENTS=st.session_state.departement,
                                         COMMUNES=st.session_state.commune)
         conn.execute(stmt)
+        st.write(st.session_state.departement)
     return
