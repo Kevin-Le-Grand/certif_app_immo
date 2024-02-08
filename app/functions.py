@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 import pymysql
 import os
+from datetime import date
 # from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData, Table, Column, Date, String
+from sqlalchemy.sql import update
 
 # Librairies pour afficher les ventes sur une carte
 import folium
@@ -34,8 +36,18 @@ def create_connection(host,user,password,port,database):
 
 def sqlengine():
     engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
-    
     return engine
+
+def engine_postgre():
+    engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
+    return engine_postgre
+
+KPI_table  = Table('KPI', MetaData(),
+                    Column('DATE_pred', Date),
+                    Column('TYPE', String),
+                    Column('REGION', String),
+                    Column('DEPARTEMENTS', String),
+                    Column('COMMUNES', String))
 #//////////////////////////////////////////////////////////////////////////////
 #                          Page d'authentification
 #//////////////////////////////////////////////////////////////////////////////
@@ -307,5 +319,25 @@ def api_predict(data: dict) -> dict:
     """
     response = requests.post('https://apiimmoappkevleg-7337fa262339.herokuapp.com/predict',
                               json=data)
+    
     return response.json()
+    
 
+
+#//////////////////////////////////////////////////////////////////////////////
+#                  enregistrement de la recherche dans grafana
+#//////////////////////////////////////////////////////////////////////////////
+def log_grafana():
+    """
+    Fonction permettant d'enregistrer les paramètres de la recherche dans Grafana.
+    
+    Cette fonction ne prend aucun argument en entrée et ne produit aucune sortie.
+    """
+    with engine_postgre.connect() as conn:
+        stmt = update(KPI_table).values(DATE_pred=date.today(),
+                                        TYPE=st.session_state.type_de_bien,
+                                        REGION=st.session_state.region,
+                                        DEPARTEMENTS=st.session_state.departement,
+                                        COMMUNES=st.session_state.commune)
+        conn.execute(stmt)
+    return

@@ -37,6 +37,7 @@ def main():
         # Affichage de l'estimation
         if st.session_state.valid_formulaire:
             formulaire_valide(cursor)
+            log_grafana()
         # Affichage des statistiques sur la commune :
         elif st.session_state.commune!="Sélectionnez une commune":
             st.title("Page sur les statistiques de la commune à venir...")
