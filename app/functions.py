@@ -339,5 +339,6 @@ def log_grafana():
                                         DEPARTEMENTS=st.session_state.departement,
                                         COMMUNES=st.session_state.commune)
         conn.execute(stmt)
+        conn.commit()
         st.write(st.session_state.departement)
     return
