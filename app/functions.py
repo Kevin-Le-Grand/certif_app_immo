@@ -40,7 +40,7 @@ def sqlengine():
 
 engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
    
-KPI_table  = Table('KPI', MetaData(),
+KPI_table = Table('"KPI"', MetaData(),
                     Column('DATE_pred', Date),
                     Column('TYPE', String),
                     Column('REGION', String),
