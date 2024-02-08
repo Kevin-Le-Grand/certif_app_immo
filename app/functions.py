@@ -38,10 +38,8 @@ def sqlengine():
     engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
     return engine
 
-def engine_postgre():
-    engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
-    return engine_postgre
-
+engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
+   
 KPI_table  = Table('KPI', MetaData(),
                     Column('DATE_pred', Date),
                     Column('TYPE', String),
@@ -330,7 +328,7 @@ def api_predict(data: dict) -> dict:
 def log_grafana():
     """
     Fonction permettant d'enregistrer les paramètres de la recherche dans Grafana.
-    
+
     Cette fonction ne prend aucun argument en entrée et ne produit aucune sortie.
     """
     with engine_postgre.connect() as conn:
