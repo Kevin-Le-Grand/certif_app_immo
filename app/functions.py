@@ -4,7 +4,9 @@ import pymysql
 import os
 from datetime import date
 # from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column, Integer, String, MetaData, Table, Date, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 
 # Librairies pour afficher les ventes sur une carte
@@ -46,24 +48,28 @@ engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
 #//////////////////////////////////////////////////////////////////////////////
 #                          CREATION DES TABLES POUR GRAFANA
 #//////////////////////////////////////////////////////////////////////////////
-create_KPI_table = '''
-        CREATE TABLE IF NOT EXISTS KPI (
-            date_pred DATE,
-            type VARCHAR(50),
-            region VARCHAR(50),
-            departement VARCHAR(50),
-            commune VARCHAR(50)
-        )
-    '''
-create_Crash_app_table='''
-        CREATE TABLE IF NOT EXISTS Crash_app (
-                        date_crash DATE,
-                        info Text
-'''
-with engine_postgre.connect() as connection:
-    connection.execute(create_KPI_table)
-    connection.execute(create_Crash_app_table)
-    connection.commit()
+Base = declarative_base()
+Session = sessionmaker(bind=engine_postgre)
+session = Session()
+
+class KPI(Base):
+    __tablename__ = 'KPI'
+
+    date_pred = Column(Date)
+    type_bien = Column(String)
+    region = Column(String)
+    departement = Column(String)
+    commune = Column(String)
+
+class Crash_app(Base):
+    __tablename__ = 'KPI'
+
+    date_crash = Column(Date)
+    info = Column(Text)
+
+Base.metadata.create_all(engine_postgre, if_exists='skip')
+
+
 #//////////////////////////////////////////////////////////////////////////////
 #                          Page d'authentification
 #//////////////////////////////////////////////////////////////////////////////
@@ -354,17 +360,12 @@ def log_grafana():
 
     Cette fonction ne produit aucune sortie dans l'application.
     """
-    with engine_postgre.connect() as conn:
-        insert_data_query ='''
-            INSERT INTO KPI (date_pred, type, region, departement, commune)
-            VALUES (%s, %s, %s, %s, %s)
-    '''
-    
-    with engine_postgre.connect() as conn:
-        conn.execute(insert_data_query, (date.today(),
-                                                st.session_state.type_de_bien,
-                                                st.session_state.region,
-                                                st.session_state.departement,
-                                                st.session_state.commune))
-        conn.commit()
+
+    log_datas = KPI(date_pred=date.today(),
+                    type_de_bien=st.session_state.type_de_bien,
+                    region=st.session_state.region,
+                    departement=st.session_state.departement,
+                    commune=st.session_state.commune)
+    session.add(log_datas)
+    session.commit()
     return
