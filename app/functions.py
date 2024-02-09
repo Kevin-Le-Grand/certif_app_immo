@@ -49,13 +49,13 @@ database = DataBaseV2(
     db_url=f"{os.environ['URL_POSTGRE']}"
 )
 
-database.create_table('KPI',date_pred=Date, 
+database.create_table('kpis',date_pred=Date, 
                       type_de_bien=String, 
                       region=String,
                       departement=String,
                       commune=String)
 
-database.create_table('Crash_app',date_crash=Date, 
+database.create_table('crash',date_crash=Date, 
                       Infos = Text)
 
 
@@ -349,7 +349,7 @@ def log_grafana():
 
     Cette fonction ne produit aucune sortie dans l'application.
     """
-    database.add_row('KPI',
+    database.add_row('kpis',
                      date_pred=date.today(),
                     type_de_bien=st.session_state.type_de_bien,
                     region=st.session_state.region,
