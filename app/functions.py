@@ -56,7 +56,7 @@ database.create_table('kpis',date_pred=Date,
                       commune=String)
 
 database.create_table('crash',date_crash=Date, 
-                      Infos = Text)
+                      infos = Text)
 
 
 #//////////////////////////////////////////////////////////////////////////////
@@ -377,5 +377,5 @@ def log_crash_grafana(texte : str) -> None:
     """
     database.add_row('crash',
                      date_crash=date.today(),
-                     Infos = texte)
+                     infos = texte)
     return
