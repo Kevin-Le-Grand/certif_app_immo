@@ -4,8 +4,8 @@ import pymysql
 import os
 from datetime import date
 # from dotenv import load_dotenv
-from sqlalchemy import create_engine, MetaData, Table, Column, Date, String
-from sqlalchemy.sql import update
+from sqlalchemy import create_engine
+
 
 # Librairies pour afficher les ventes sur une carte
 import folium
@@ -26,6 +26,7 @@ import hashlib
 #//////////////////////////////////////////////////////////////////////////////
 #                          Database RDS AWS
 #//////////////////////////////////////////////////////////////////////////////
+# Connection avec pymysql à la base de  données datagouv
 def create_connection(host,user,password,port,database):
     conn = pymysql.connect(host=host,
     user=user,
@@ -34,19 +35,35 @@ def create_connection(host,user,password,port,database):
     database=database)
     return conn
 
+# Connection avec sqlalchemy à la base de données datagouv
 def sqlengine():
     engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
     return engine
 
+# Connection avec sqlalchemy à la base de données mlflow 
 engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
 
-
-kpi_table = Table("KPI", MetaData(),
-                    Column('DATE_pred', Date),
-                    Column('TYPE', String),
-                    Column('REGION', String),
-                    Column('DEPARTEMENTS', String),
-                    Column('COMMUNES', String))
+#//////////////////////////////////////////////////////////////////////////////
+#                          CREATION DES TABLES POUR GRAFANA
+#//////////////////////////////////////////////////////////////////////////////
+create_KPI_table = '''
+        CREATE TABLE IF NOT EXISTS KPI (
+            date_pred DATE,
+            type VARCHAR(50),
+            region VARCHAR(50),
+            departement VARCHAR(50),
+            commune VARCHAR(50)
+        )
+    '''
+create_Crash_app_table='''
+        CREATE TABLE IF NOT EXISTS Crash_app (
+                        date_crash DATE,
+                        info Text
+'''
+with engine_postgre.connect() as connection:
+    connection.execute(create_KPI_table)
+    connection.execute(create_Crash_app_table)
+    connection.commit()
 #//////////////////////////////////////////////////////////////////////////////
 #                          Page d'authentification
 #//////////////////////////////////////////////////////////////////////////////
@@ -137,7 +154,8 @@ def formulaire(cursor):
     """
     # Ajout d'un menu déroulant avec les régions:
     query="""
-    SELECT Name_region FROM REGIONS;
+    SELECT Name_region FROM REGIONS
+    WHERE Name_region NOT IN ("Martinique","Guyane","La Réunion","Mayotte");
     """
     cursor.execute(query)
     resultats = cursor.fetchall()
@@ -243,6 +261,7 @@ def affichage_ventes_proximite(commune : list, cursor) -> str:
     Args :
     - commune (list) : Liste de type ['Normandie','Calvados','Caen']
     - cursor: Connexion à la base de données
+
     Returns:
         str (html): <html>.....</html>
     """
@@ -330,15 +349,22 @@ def log_grafana():
     """
     Fonction permettant d'enregistrer les paramètres de la recherche dans Grafana.
 
-    Cette fonction ne prend aucun argument en entrée et ne produit aucune sortie.
+    Cette fonction ne prend aucun argument en entrée et utilise st.session_state 
+    pour stocker les données dans postgre.
+
+    Cette fonction ne produit aucune sortie dans l'application.
     """
     with engine_postgre.connect() as conn:
-        stmt = update(kpi_table).values(DATE_pred=date.today(),
-                                        TYPE=st.session_state.type_de_bien,
-                                        REGION=st.session_state.region,
-                                        DEPARTEMENTS=st.session_state.departement,
-                                        COMMUNES=st.session_state.commune)
-        conn.execute(stmt)
-        conn.commit()
-        st.write(st.session_state.departement)
+        insert_data_query ='''
+            INSERT INTO KPI (date_pred, type, region, departement, commune)
+            VALUES (%s, %s, %s, %s, %s)
+    '''
+    
+    with engine_postgre.connect() as connection:
+        connection.execute(insert_data_query, (date.today(),
+                                                st.session_state.type_de_bien,
+                                                st.session_state.region,
+                                                st.session_state.departement,
+                                                st.session_state.commune))
+        connection.commit()
     return
