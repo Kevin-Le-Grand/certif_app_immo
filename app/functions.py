@@ -360,7 +360,7 @@ def log_grafana():
             VALUES (%s, %s, %s, %s, %s)
     '''
     
-    with engine_postgre.connect() as connection:
+    with engine_postgre.connect() as conn:
         conn.execute(insert_data_query, (date.today(),
                                                 st.session_state.type_de_bien,
                                                 st.session_state.region,
