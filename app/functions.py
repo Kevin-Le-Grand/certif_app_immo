@@ -372,7 +372,7 @@ def log_crash_grafana(texte : str) -> None:
 
     Remarque:  
     
-    Cette fonction a pour but de visualiser les erreurs dans grafana puis d'envoyer 
+    Cette fonction a pour but de visualiser les erreurs dans Grafana puis d'envoyer 
     un mail à l'aide de grafana aux développeurs.
     """
     database.add_row('crash',
