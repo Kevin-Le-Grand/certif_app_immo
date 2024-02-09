@@ -4,9 +4,8 @@ import pymysql
 import os
 from datetime import date
 # from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, String, MetaData, Table, Date, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, Date, String, Text
+from config_bdd import DataBaseV2
 
 
 # Librairies pour afficher les ventes sur une carte
@@ -42,32 +41,22 @@ def sqlengine():
     engine = create_engine(f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/datagouv")
     return engine
 
-# Connection avec sqlalchemy à la base de données mlflow 
-engine_postgre = create_engine(f"{os.environ['URL_POSTGRE']}")
-
 #//////////////////////////////////////////////////////////////////////////////
 #                          CREATION DES TABLES POUR GRAFANA
 #//////////////////////////////////////////////////////////////////////////////
-Base = declarative_base()
-Session = sessionmaker(bind=engine_postgre)
-session = Session()
+database = DataBaseV2(
+    db_type='postgresql',
+    db_url=f"{os.environ['URL_POSTGRE']}"
+)
 
-class KPI(Base):
-    __tablename__ = 'KPI'
+database.create_table('KPI',date_pred=Date, 
+                      type_de_bien=String, 
+                      region=String,
+                      departement=String,
+                      commune=String)
 
-    date_pred = Column(Date)
-    type_bien = Column(String)
-    region = Column(String)
-    departement = Column(String)
-    commune = Column(String)
-
-class Crash_app(Base):
-    __tablename__ = 'KPI'
-
-    date_crash = Column(Date)
-    info = Column(Text)
-
-Base.metadata.create_all(engine_postgre, if_exists='skip')
+database.create_table('Crash_app',date_crash=Date, 
+                      Infos = Text)
 
 
 #//////////////////////////////////////////////////////////////////////////////
@@ -360,12 +349,10 @@ def log_grafana():
 
     Cette fonction ne produit aucune sortie dans l'application.
     """
-
-    log_datas = KPI(date_pred=date.today(),
+    database.add_row('KPI',
+                     date_pred=date.today(),
                     type_de_bien=st.session_state.type_de_bien,
                     region=st.session_state.region,
                     departement=st.session_state.departement,
                     commune=st.session_state.commune)
-    session.add(log_datas)
-    session.commit()
     return
