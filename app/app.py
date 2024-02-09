@@ -86,4 +86,4 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         st.header(f"Une erreur s'est produite : {e}")
-        log_crash_grafana(e)
+        log_crash_grafana(f"{e}")
