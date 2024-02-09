@@ -29,7 +29,11 @@ def main():
             AND T.NAME_TYPE_BIEN='{i}'
             AND V.SURFACE_BATI>0
             AND V.NB_PIECES>0
-            AND R.Name_region NOT IN("Martinique","Guyane","La Réunion","Mayotte");
+            AND R.Name_region NOT IN("Martinique",
+                                    "Guyane",
+                                    "La Réunion",
+                                    "Mayotte",
+                                    "Guadeloupe");
             """
         else:
             query=f"""
@@ -49,7 +53,7 @@ def main():
             AND T.NAME_TYPE_BIEN='{i}'
             AND V.SURFACE_BATI>0
             AND V.NB_PIECES>0
-            AND R.Name_region NOT IN("Martinique","Guyane","La Réunion","Mayotte");
+            AND R.Name_region NOT IN("Martinique","Guyane","La Réunion","Mayotte","Guadeloupe");
             """
         
         # Récupération des données
@@ -81,9 +85,6 @@ def main():
 
         with mlflow.start_run(experiment_id = experiment.experiment_id, run_name=run_name):
 
-            # Enregistrement d'un exemple des données
-            mlflow.log_dataframe(df.head(5), "nom_du_dataset")
-
             # Enregistrement des meilleurs paramètres du modèle
             mlflow.log_params(best_params)
 
@@ -106,6 +107,7 @@ def main():
             # Enregistrement du modèle
             mlflow.sklearn.log_model(model,
                                     "ImmoApp",
+                                    input_example = df.head(5).drop(columns=['DATE_MUTATION']),
                                     registered_model_name = model_name)
             
             # Sauvegarde des encoders et scalers

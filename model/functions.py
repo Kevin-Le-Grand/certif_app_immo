@@ -154,16 +154,20 @@ def train_model(df: pd.DataFrame) ->(pd.DataFrame , dict, dict,list, list):
 
     # Utilisation de GridSearch CV pour l'entraînement du modèle
     param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [None, 10, 20],
-    'min_samples_split': [2, 5, 10]
+    'n_estimators': [50, 100],
+    'max_depth': [None, 10],
+    'min_samples_split': [2, 5]
     }   
 
     # Type de métriques pour la recherche de meilleurs paramètres
     scorer = make_scorer(r2_score)
 
     # Entraînement avec les différentes paramètres
-    grid_search = GridSearchCV(RandomForestRegressor(), param_grid, cv=5, scoring=scorer)
+    grid_search = GridSearchCV(RandomForestRegressor(), 
+                               param_grid, cv=5, 
+                               scoring=scorer,
+                               verbose=1)
+    
     grid_search.fit(X_train, y_train)
     best_params = grid_search.best_params_
     
