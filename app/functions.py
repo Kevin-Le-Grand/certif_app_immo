@@ -361,10 +361,10 @@ def log_grafana():
     '''
     
     with engine_postgre.connect() as connection:
-        connection.execute(insert_data_query, (date.today(),
+        conn.execute(insert_data_query, (date.today(),
                                                 st.session_state.type_de_bien,
                                                 st.session_state.region,
                                                 st.session_state.departement,
                                                 st.session_state.commune))
-        connection.commit()
+        conn.commit()
     return
