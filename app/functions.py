@@ -150,7 +150,7 @@ def formulaire(cursor):
     # Ajout d'un menu déroulant avec les régions:
     query="""
     SELECT Name_region FROM REGIONS
-    WHERE Name_region NOT IN ("Martinique","Guyane","La Réunion","Mayotte");
+    WHERE Name_region NOT IN ("Martinique","Guyane","La Réunion","Mayotte","Guadeloupe");
     """
     cursor.execute(query)
     resultats = cursor.fetchall()
@@ -340,7 +340,7 @@ def api_predict(data: dict) -> dict:
 #//////////////////////////////////////////////////////////////////////////////
 #                  enregistrement de la recherche dans grafana
 #//////////////////////////////////////////////////////////////////////////////
-def log_grafana():
+def log_grafana() -> None:
     """
     Fonction permettant d'enregistrer les paramètres de la recherche dans Grafana.
 
@@ -355,4 +355,27 @@ def log_grafana():
                     region=st.session_state.region,
                     departement=st.session_state.departement,
                     commune=st.session_state.commune)
+    return
+
+#//////////////////////////////////////////////////////////////////////////////
+#                  enregistrement des erreurs dans grafana
+#//////////////////////////////////////////////////////////////////////////////
+def log_crash_grafana(texte : str) -> None:
+    """
+    Fonction permettant d'enregistrer les plantages de l'application dans Postgre.
+
+    Args:
+    - texte (str) : Texte de l'erreur avec try: ... except Exception as e
+
+    Returns:
+    - None
+
+    Remarque:  
+    
+    Cette fonction a pour but de visualiser les erreurs dans grafana puis d'envoyer 
+    un mail à l'aide de grafana aux développeurs.
+    """
+    database.add_row('kpis',
+                     date_pred=date.today(),
+                     Infos = texte)
     return

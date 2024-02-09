@@ -54,32 +54,35 @@ def main():
 
 
 if __name__ == "__main__":
-    #///////////////////////////////////////////////////////////////////////////
-    #                          Configuration de la page
-    #///////////////////////////////////////////////////////////////////////////
-    st.set_page_config(page_title="Immo App", page_icon=":rocket:", layout="wide")
+    try:
+        #///////////////////////////////////////////////////////////////////////////
+        #                          Configuration de la page
+        #///////////////////////////////////////////////////////////////////////////
+        st.set_page_config(page_title="Immo App", page_icon=":rocket:", layout="wide")
 
-    # Ajout du style CSS pour supprimer la marge haute
-    st.markdown("""
-    <style> .block-container {padding-top: 0;}
-            .st-emotion-cache-16txtl3 {padding-top: 0;}
-    </style>
-    """, unsafe_allow_html=True)
+        # Ajout du style CSS pour supprimer la marge haute
+        st.markdown("""
+        <style> .block-container {padding-top: 0;}
+                .st-emotion-cache-16txtl3 {padding-top: 0;}
+        </style>
+        """, unsafe_allow_html=True)
 
-    #///////////////////////////////////////////////////////////////////////////
-    #  Connection à la base de données et création d'une table users si besoin
-    #///////////////////////////////////////////////////////////////////////////
-    # Connection avec la base de données
-    conn = create_connection(os.environ['DB_HOST'],
-                               os.environ['DB_USER'],
-                               os.environ['DB_PASSWORD'],
-                               int(os.environ['DB_PORT']),
-                               "datagouv")
-    cursor = conn.cursor()
-    # Créer la table utilisateur si elle n'existe pas déjà
-    create_user_table(conn,cursor)
+        #///////////////////////////////////////////////////////////////////////////
+        #  Connection à la base de données et création d'une table users si besoin
+        #///////////////////////////////////////////////////////////////////////////
+        # Connection avec la base de données
+        conn = create_connection(os.environ['DB_HOST'],
+                                os.environ['DB_USER'],
+                                os.environ['DB_PASSWORD'],
+                                int(os.environ['DB_PORT']),
+                                "datagouv")
+        cursor = conn.cursor()
+        # Créer la table utilisateur si elle n'existe pas déjà
+        create_user_table(conn,cursor)
 
-    #////////////////////////////////////
-    #       Programme principal
-    #////////////////////////////////////
-    main()
+        #////////////////////////////////////
+        #       Programme principal
+        #////////////////////////////////////
+        main()
+    except Exception as e:
+        log_crash_grafana(e)
