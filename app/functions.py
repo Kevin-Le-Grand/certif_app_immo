@@ -375,7 +375,7 @@ def log_crash_grafana(texte : str) -> None:
     Cette fonction a pour but de visualiser les erreurs dans grafana puis d'envoyer 
     un mail à l'aide de grafana aux développeurs.
     """
-    database.add_row('kpis',
+    database.add_row('crash',
                      date_pred=date.today(),
                      Infos = texte)
     return
