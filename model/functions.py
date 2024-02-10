@@ -166,7 +166,7 @@ def train_model(df: pd.DataFrame) ->(pd.DataFrame , dict, dict,list, list):
     grid_search = GridSearchCV(RandomForestRegressor(), 
                                param_grid, cv=5, 
                                scoring=scorer,
-                               verbose=1)
+                               verbose=2)
     
     grid_search.fit(X_train, y_train)
     best_params = grid_search.best_params_

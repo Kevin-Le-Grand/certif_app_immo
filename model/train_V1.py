@@ -70,7 +70,7 @@ def main():
         mlflow.sklearn.autolog()
 
         # Connexion à une expérience
-        experiment_name = "RandomForestRegressor_all_datas"
+        experiment_name = "RandomForestRegressor_all_datas_region_time"
         run_name = i
         model_name = f"RFR_all_datas_{i}"
 
@@ -107,7 +107,7 @@ def main():
             # Enregistrement du modèle
             mlflow.sklearn.log_model(model,
                                     "ImmoApp",
-                                    input_example = df.head(5).drop(columns=['DATE_MUTATION']),
+                                    input_example = X_test.head(1),
                                     registered_model_name = model_name)
             
             # Sauvegarde des encoders et scalers
