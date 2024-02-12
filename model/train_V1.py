@@ -105,9 +105,12 @@ def main():
             mlflow.log_metric("train_msle", msle)
 
             # Enregistrement du modèle
+            input_example = X_test.head(5)
+            signature = infer_signature(input_example,model.predict(input_example))
             mlflow.sklearn.log_model(model,
                                     "ImmoApp",
-                                    input_example = X_test.head(1),
+                                    input_example = input_example,
+                                    signature=signature,
                                     registered_model_name = model_name)
             
             # Sauvegarde des encoders et scalers
