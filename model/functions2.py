@@ -12,10 +12,48 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import make_scorer, r2_score
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau,Callback
 from sqlalchemy import text
 import matplotlib.pyplot as plt
 from typing import Tuple, Dict
 
+
+
+#//////////////////////////////////////////////////////////////////////////////
+#     Objet pour ajouter des métriques de performances au réseau de neurones
+#//////////////////////////////////////////////////////////////////////////////
+class MetricsCallback(Callback):
+    def __init__(self, X_train, y_train, X_test, y_test):
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_test = X_test
+        self.y_test = y_test
+        self.train_r2 = []
+        self.val_r2 = []
+        self.train_rmse = []
+        self.val_rmse = []
+
+    def on_epoch_end(self, epoch, logs=None):
+        train_pred = self.model.predict(self.X_train)
+        val_pred = self.model.predict(self.X_test)
+        
+        train_r2 = r2_score(self.y_train, train_pred)
+        val_r2 = r2_score(self.y_test, val_pred)
+        
+        train_rmse = np.sqrt(mean_squared_error(self.y_train, train_pred))
+        val_rmse = np.sqrt(mean_squared_error(self.y_test, val_pred))
+        
+        self.train_r2.append(train_r2)
+        self.val_r2.append(val_r2)
+        self.train_rmse.append(train_rmse)
+        self.val_rmse.append(val_rmse)
+
+
+#//////////////////////////////////////////////////////////////////////////////
+#                       Chargement des données
+#//////////////////////////////////////////////////////////////////////////////
 def loading_data(query : str) -> pd.DataFrame:
     """ 
     Fonction permettant de de récupérer les données dans la base de données à
@@ -40,53 +78,9 @@ def loading_data(query : str) -> pd.DataFrame:
     return datas
 
 
-def encod_scal(X_train : pd.DataFrame, X_test : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame , dict, dict]:
-    """ 
-    Fonction permettant de labelliser puis de standardiser X_train et X_test  
-
-    Args :
-    - X_train (pd.DataFrame) : Données d'entraînement
-    - X_test (pd.Dataframe) : Données de test
-
-    Return :
-    - X_train (pd.DataFrame) : Les données d'entraînement labellisées et standardisées
-    - X_test (pd.Dataframe) : Les données de test labellisées et standardisées
-    - encoders (dict) : Dictionnaire stockant les encodeurs pour chaque variable catégorielle
-    - scalers (dict) : Dictionnaire stockant les scalers pour chaque variable numérique
-    """
-    print("Normalisation des données en cours...")
-    # Sélection des variables non numériques
-    non_numerical = X_train.select_dtypes(exclude=['number']).columns.to_list()
-    # Sélection des colonnes à traiter (toutes sauf la valeur à prédire)
-    features = X_train.columns.tolist()
-
-    # Dictionnaire où seront stockés les LabelEncoder et Scaler afin
-    # de pouvoir inverser la labellisation et la standardisation
-    encoders = {}
-    scalers = {}
-
-    # Encodage des variables catégorielles
-    for col in non_numerical:
-        le = LabelEncoder()
-        X_train[col] = le.fit_transform(X_train[col])
-        encoders[col] = le
-    # Normalisation des données
-    for col in features:
-        scaler = StandardScaler()
-        X_train[col] = scaler.fit_transform(X_train[col].values.reshape(-1, 1))
-        scalers[col] = scaler
-
-    # Utilisation des encoders et scaler pour transformer X_test
-    for col, encoder in encoders.items():
-
-        X_test[col] = encoder.transform(X_test[col])
-    
-    # Normalisation des données
-    for col, scaler in scalers.items():
-        X_test[col] = scaler.transform(X_test[col].values.reshape(-1, 1))
-    print("Normalisation des données OK")
-    return X_train, X_test, encoders,scalers
-
+#//////////////////////////////////////////////////////////////////////////////
+#                       Split des données (2 méthodes)
+#//////////////////////////////////////////////////////////////////////////////
 def split(df: pd.DataFrame):
     """ 
     Fonction permettant de séparer les données en données d'entraînement et de test
@@ -185,6 +179,60 @@ def split_with_m2(df: pd.DataFrame):
     return X_train,y_train, X_test, y_test
 
 
+#//////////////////////////////////////////////////////////////////////////////
+#                  Labellisation et standardisation des données
+#//////////////////////////////////////////////////////////////////////////////
+def encod_scal(X_train : pd.DataFrame, X_test : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame , dict, dict]:
+    """ 
+    Fonction permettant de labelliser puis de standardiser X_train et X_test  
+
+    Args :
+    - X_train (pd.DataFrame) : Données d'entraînement
+    - X_test (pd.Dataframe) : Données de test
+
+    Return :
+    - X_train (pd.DataFrame) : Les données d'entraînement labellisées et standardisées
+    - X_test (pd.Dataframe) : Les données de test labellisées et standardisées
+    - encoders (dict) : Dictionnaire stockant les encodeurs pour chaque variable catégorielle
+    - scalers (dict) : Dictionnaire stockant les scalers pour chaque variable numérique
+    """
+    print("Normalisation des données en cours...")
+    # Sélection des variables non numériques
+    non_numerical = X_train.select_dtypes(exclude=['number']).columns.to_list()
+    # Sélection des colonnes à traiter (toutes sauf la valeur à prédire)
+    features = X_train.columns.tolist()
+
+    # Dictionnaire où seront stockés les LabelEncoder et Scaler afin
+    # de pouvoir inverser la labellisation et la standardisation
+    encoders = {}
+    scalers = {}
+
+    # Encodage des variables catégorielles
+    for col in non_numerical:
+        le = LabelEncoder()
+        X_train[col] = le.fit_transform(X_train[col])
+        encoders[col] = le
+    # Normalisation des données
+    for col in features:
+        scaler = StandardScaler()
+        X_train[col] = scaler.fit_transform(X_train[col].values.reshape(-1, 1))
+        scalers[col] = scaler
+
+    # Utilisation des encoders et scaler pour transformer X_test
+    for col, encoder in encoders.items():
+
+        X_test[col] = encoder.transform(X_test[col])
+    
+    # Normalisation des données
+    for col, scaler in scalers.items():
+        X_test[col] = scaler.transform(X_test[col].values.reshape(-1, 1))
+    print("Normalisation des données OK")
+    return X_train, X_test, encoders,scalers
+
+
+#//////////////////////////////////////////////////////////////////////////////
+#             Fonctions pour les différents modèles
+#//////////////////////////////////////////////////////////////////////////////
 def train_model_randomforest(X_train : pd.DataFrame ,
                 y_train : pd.Series,
                 param_grid : dict, 
@@ -228,7 +276,79 @@ def train_model_randomforest(X_train : pd.DataFrame ,
     print("Entraînement OK")
     return model, best_params
 
+def train_tensor_flow(X_train,y_train,X_test,y_test):
+    model = Sequential([Dense(64, activation='relu',
+    input_shape=(X_train.shape[1],)),
+    Dense(64, activation='relu'), Dense(1) # Couche de sortie avec une seule sortie pour la régression
+    ])
+    # Imprimer le summary du modèle
+    model.summary()
 
+    # Compilation du modèle
+    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
+
+    # Définition de l'arrêt précoce (Early Stopping)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    # Réduction de la descente de gradient
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, min_lr=0.0001)
+    # Enregistrement de metriques complémentaires
+    metrics_callback = MetricsCallback(X_train, y_train, X_test, y_test)
+
+    # Entraînement du modèle avec l'arrêt précoce
+    history = model.fit(X_train, y_train,
+    epochs=100,
+    batch_size=128,
+    validation_data=(X_test, y_test),
+    callbacks=[early_stopping, reduce_lr, metrics_callback],
+    verbose=1)
+
+    # Extraction des métriques
+    train_mae = history.history['mae']
+    val_mae = history.history['val_mae']
+    train_r2 = metrics_callback.train_r2
+    val_r2 = metrics_callback.val_r2
+    train_rmse = metrics_callback.train_rmse
+    val_rmse = metrics_callback.val_rmse
+
+    # Tracé des courbes
+    epochs = range(1, len(train_mae) + 1)
+
+    plt.figure(figsize=(12, 6))
+
+    plt.subplot(1, 3, 1)
+    plt.plot(epochs, train_mae, 'b', label='Training MAE')
+    plt.plot(epochs, val_mae, 'r', label='Validation MAE')
+    plt.title('Training and Validation MAE')
+    plt.xlabel('Epochs')
+    plt.ylabel('MAE')
+    plt.legend()
+
+    plt.subplot(1, 3, 2)
+    plt.plot(epochs, train_r2, 'b', label='Training R2 Score')
+    plt.plot(epochs, val_r2, 'r', label='Validation R2 Score')
+    plt.title('Training and Validation R2 Score')
+    plt.xlabel('Epochs')
+    plt.ylabel('R2 Score')
+    plt.legend()
+
+    plt.subplot(1, 3, 3)
+    plt.plot(epochs, train_rmse, 'b', label='Training RMSE')
+    plt.plot(epochs, val_rmse, 'r', label='Validation RMSE')
+    plt.title('Training and Validation RMSE')
+    plt.xlabel('Epochs')
+    plt.ylabel('RMSE')
+    plt.legend()
+    plt.tight_layout()
+
+    # Enregistrement des graphiques avec MLflow
+    image_path="training_validation_metrics.png"
+    plt.savefig(image_path)
+    print("Entraînement OK")
+    return model,image_path
+
+#//////////////////////////////////////////////////////////////////////////////
+#             Graphiques pour visualiser les données d'entraînement
+#//////////////////////////////////////////////////////////////////////////////
 def plot_learning_curve(estimator : BaseEstimator,
                         type_de_bien : str ,
                         X : pd.DataFrame,
@@ -281,6 +401,9 @@ def plot_learning_curve(estimator : BaseEstimator,
     return image_path
 
 
+#//////////////////////////////////////////////////////////////////////////////
+#                                    MLFlow
+#//////////////////////////////////////////////////////////////////////////////
 def log_mlflow(uri_tracking : str,
                experiment_name : str,
                run_name : str,
