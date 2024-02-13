@@ -129,6 +129,62 @@ def split(df: pd.DataFrame):
     return X_train,y_train, X_test, y_test
 
 
+def split_with_m2(df: pd.DataFrame):
+    """ 
+    Fonction permettant de séparer les données en données d'entraînement et de test,
+    d'ajouter une colonne avec le prix moyen au m2 par commune et de supprimer 
+    la colonne ID_COMMUNE rendue inutile
+
+    Args :
+    - df (pd.DataFrame) : Données à splitter
+
+    Return :
+    - X_train (pd.Dataframe) : Données d'entrée d'entraînement.
+    - y_train (pd.Series) : Données de sortie d'entraînement.
+    - X_test (pd.Dataframe) : Données d'entrée de test.
+    - y_test (pd.Series) : Données de sortie de test.
+    """
+    print("Split des données en cours...")
+    # Suppression des lignes dupliquées
+    df = df.drop_duplicates()
+
+    # Tri du dataframe par ordre croissant de date
+    df.loc[:, 'DATE_MUTATION'] = pd.to_datetime(df['DATE_MUTATION'])
+    df = df.sort_values(by='DATE_MUTATION', ascending=True)
+
+    # Suppression de la colonne date
+    df = df.drop("DATE_MUTATION", axis=1)
+
+    # Reset de L'index
+    df = df.reset_index(drop=True)
+
+    # Split de données
+    nb_lines_train = int(df.shape[0]*0.8)
+    df_train = df.iloc[:nb_lines_train,:]
+    df_test = df.iloc[nb_lines_train:,:]
+    # Suppression des lignes dans X_test dont les ID_COMMUNE ne sont pas présents dans df_train
+    df_test = df_test[df_test['ID_COMMUNE'].isin(df_train['ID_COMMUNE'])]
+
+    # Calcul du prix au m² par commune dans df_train puis ajout dans df_test
+    df_train['M2'] = df_train['MONTANT'] / df_train['SURFACE_BATI']
+    df_avg_m2_commune = df_train.groupby('ID_COMMUNE')['M2'].mean().reset_index(name='prix_moyen_commune_m2')
+    df_avg_m2_commune['prix_moyen_commune_m2']= df_avg_m2_commune['prix_moyen_commune_m2'].round(2)
+    # df_train
+    df_train = df_train.merge(df_avg_m2_commune, on='ID_COMMUNE')
+    df_train = df_train.drop(["ID_COMMUNE","M2"], axis=1)
+    # df_test
+    df_test = df_test.merge(df_avg_m2_commune, on='ID_COMMUNE')
+    df_test = df_test.drop(["ID_COMMUNE"], axis=1)
+
+    # Séparation des données 
+    y_train = df_train.loc[:,"MONTANT"]
+    X_train = df_train.drop("MONTANT",axis=1)
+    y_test = df_test.loc[:,"MONTANT"]
+    X_test = df_test.drop("MONTANT", axis=1)
+    print("Split OK")
+    return X_train,y_train, X_test, y_test
+
+
 def train_model_randomforest(X_train : pd.DataFrame ,
                 y_train : pd.Series,
                 param_grid : dict, 
@@ -273,12 +329,13 @@ def log_mlflow(uri_tracking : str,
         mlflow.log_artifact(image_path)
 
         # Calcul des métriques
-        r2 = model.score(X_test, y_test)
-        mse = mean_squared_error(y_test, model.predict(X_test))
+        y_pred = model.predict(X_test)
+        r2 = r2_score(y_test, y_pred)
+        mse = mean_squared_error(y_test, y_pred)
         rmse = np.sqrt(mse)
-        mae = mean_absolute_error(y_test, model.predict(X_test))
-        mape = mean_absolute_percentage_error(y_test, model.predict(X_test))
-        msle = mean_squared_log_error(y_test, model.predict(X_test))
+        mae = mean_absolute_error(y_test, y_pred)
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+        msle = mean_squared_log_error(y_test, y_pred)
 
         # Enregistrement des métriques
         mlflow.log_metric("train_r2", r2)
@@ -289,7 +346,7 @@ def log_mlflow(uri_tracking : str,
         mlflow.log_metric("train_msle", msle)
 
         # Enregistrement du modèle
-        input_example = X_test.head(5)
+        input_example = X_test.head(1)
         signature = infer_signature(input_example,model.predict(input_example))
         mlflow.sklearn.log_model(model,
                                 "ImmoApp",
