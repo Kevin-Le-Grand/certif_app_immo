@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import seaborn as sns
 import mlflow
 from mlflow.models import infer_signature
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error,mean_squared_log_error
@@ -18,6 +19,7 @@ from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau,Callback
 from sqlalchemy import text
 import matplotlib.pyplot as plt
 from typing import Tuple, Dict
+from IPython.display import display
 
 
 
@@ -238,7 +240,8 @@ def train_model_randomforest(X_train : pd.DataFrame ,
                 param_grid : dict, 
                 cv : int) -> Tuple[BaseEstimator, Dict] : 
     """
-    Fonction permettant d'entraîner un modèle.
+    Fonction permettant d'entraîner un modèle et de sauvegarder un graphique 
+    avec l'importance des variables.
 
     Args:
     - X_train (pd.Dataframe) : Données d'entrée d'entraînement.
@@ -258,29 +261,56 @@ def train_model_randomforest(X_train : pd.DataFrame ,
     """
     print("Entraînement en cours ...")
     # Type de métriques pour la recherche de meilleurs paramètres
-    scorer = make_scorer(r2_score)
+    scorer = {'mae': 'neg_mean_absolute_error' , 'r2' : 'r2'}
 
     # Entraînement avec les différentes paramètres
     grid_search = GridSearchCV(RandomForestRegressor(), 
                                param_grid, cv=cv, 
                                scoring=scorer,
+                               refit='mae',
                                verbose=2)
     
     grid_search.fit(X_train, y_train)
+
+    # Affichage des différents résultats
+    results = pd.DataFrame(grid_search.cv_results_)
+    display(results.head())
     best_params = grid_search.best_params_
     
     # Entraînement des données avec les meilleurs paramètres
     print("Ré-entraînement avec les meilleurs hyperparamètres en cours...")
     model=RandomForestRegressor(**best_params)
     model.fit(X_train,y_train)
+
+    # Affichage de l'importance des variables
+    importances = model.feature_importances_
+
+    # Tri des indices des variables par importance
+    indices = np.argsort(importances)[::-1]
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+    plt.title("Importance des variables")
+    plt.bar(range(X_train.shape[1]), importances[indices], color="b", align="center")
+    plt.xticks(range(X_train.shape[1]), X_train.columns[indices], rotation=90)
+    plt.xlim([-1, X_train.shape[1]])
+    plt.xlabel("Variables")
+    plt.ylabel("Importance")
+    plt.tight_layout()
+
+    # Enregistrer l'image localement
+    image_path_feature = f"./feature_importance.png"
+    plt.savefig(image_path_feature)
+    plt.show()
+    plt.show()
     print("Entraînement OK")
-    return model, best_params
+    return model, best_params, image_path_feature
 
 def train_tensor_flow(X_train,y_train,X_test,y_test):
-    model = Sequential([Dense(64, activation='relu',
-    input_shape=(X_train.shape[1],)),
-    Dense(64, activation='relu'), Dense(1) # Couche de sortie avec une seule sortie pour la régression
-    ])
+    model = Sequential([Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
+                        Dense(128, activation='relu'), 
+                        Dense(1) 
+                        ])
     # Imprimer le summary du modèle
     model.summary()
 
@@ -288,7 +318,7 @@ def train_tensor_flow(X_train,y_train,X_test,y_test):
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 
     # Définition de l'arrêt précoce (Early Stopping)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=4, restore_best_weights=True)
     # Réduction de la descente de gradient
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, min_lr=0.0001)
     # Enregistrement de metriques complémentaires
@@ -349,15 +379,16 @@ def train_tensor_flow(X_train,y_train,X_test,y_test):
 #//////////////////////////////////////////////////////////////////////////////
 #             Graphiques pour visualiser les données d'entraînement
 #//////////////////////////////////////////////////////////////////////////////
-def plot_learning_curve(estimator : BaseEstimator,
+def plot_learning_curve(model : BaseEstimator,
                         type_de_bien : str ,
                         X : pd.DataFrame,
                         y : pd.Series) -> str:
     """
-    Fonction permettant le tracé et l'enregistrement en local de la courbe d'apprentissage.
+    Fonction permettant le tracé et l'enregistrement en local de la courbe d'apprentissage
+    avec la mae et le r2 score sur les données d'entraînement et de test.
 
     Args:
-    - estimator (BaseEstimator) : Modèle avec les meilleurs hyperparamètres.
+    - model (BaseEstimator) : Modèle avec les meilleurs hyperparamètres.
     - type_de_bien (str) : Informations sur les données entraînées.
     - X (pd.DataFrame) : Données d'entrée d'entraînement.
     - y (pd.Series) : Données de sortie d'entraînement.
@@ -372,32 +403,51 @@ def plot_learning_curve(estimator : BaseEstimator,
     print("Tracé du graphique en cours...")
     train_sizes=[i / 10.0 for i in range(1, 11)]
     train_sizes[-1]=0.99
-    train_scores = []
-    validation_scores = []
+    train_r2 = []
+    validation_r2 = []
+    train_mae = []
+    validation_mae = []
+
+    # Définition d'un ensemble d'entraînement et de validation
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
     iteration=1
     for size in train_sizes:
-        X_train_subset, _, y_train_subset, _ = train_test_split(X, y, train_size=size, random_state=42)
-        estimator.fit(X_train_subset, y_train_subset)
-        train_scores.append(estimator.score(X_train_subset, y_train_subset))
-        validation_scores.append(estimator.score(X, y))
-        print(f"Itération N°{iteration} : train score = {train_scores[-1]} -- validation score = {validation_scores[-1]}")
+        X_train_subset, _, y_train_subset, _ = train_test_split(X_train, y_train, train_size=size, random_state=42)
+        model.fit(X_train_subset, y_train_subset)
+        y_pred_train=model.predict(X_train_subset)
+        y_pred_test=model.predict(X_val)
+        train_r2.append(r2_score(y_train_subset, y_pred_train))
+        validation_r2.append(r2_score(y_val, y_pred_test))
+        train_mae.append(mean_absolute_error(y_train_subset, y_pred_train))
+        validation_mae.append(mean_absolute_error(y_val, y_pred_test))
+        print(f"Itération N°{iteration} : train score = {train_r2[-1]} -- validation score = {validation_r2[-1]}")
         iteration+=1
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(train_sizes, train_scores, 'o-', color="r", label="Score d'entraînement")
-    plt.plot(train_sizes, validation_scores, 'o-', color="g", label="Score de validation")
+    plt.figure(figsize=(12, 6))
+    # R2
+    plt.subplot(1, 3, 1)
+    plt.plot(train_sizes, train_r2, '--', color="r", label="Score d'entraînement")
+    plt.plot(train_sizes, validation_r2, '-', color="g", label="Score de validation")
+    plt.title('Training and Validation r2_score')
+    plt.xlabel("Taille de l'échantillon")
+    plt.ylabel('r2_score')
+    plt.legend()
 
-    plt.title(f"Courbe d'apprentissage pour les {type_de_bien}s")
-    plt.xlabel("Taille de l'échantillon d'entraînement")
-    plt.ylabel("Score")
-    plt.legend(loc="best")
-    plt.grid(True)
+    # MAE
+    plt.subplot(1, 3, 2)
+    plt.plot(train_sizes, train_mae, '--', color="r", label="Score d'entraînement")
+    plt.plot(train_sizes, validation_mae, '-', color="g", label="Score de validation")
+    plt.title('Training and Validation MAE')
+    plt.xlabel("Taille de l'échantillon")
+    plt.ylabel('MAE')
+    plt.legend()
+
+    plt.tight_layout()
     # Enregistrer l'image localement
     image_path = f"./Learning_curve_{type_de_bien}.png"
     plt.savefig(image_path)
     plt.show()
-    print("Tracé OK")
     return image_path
 
 
@@ -411,7 +461,8 @@ def log_mlflow(uri_tracking : str,
                model : BaseEstimator, model_name : str,
                X_test : pd.DataFrame, y_test : pd.Series,
                encoders : LabelEncoder ,scalers : StandardScaler,
-               image_path : str) -> None:
+               image_path : str,
+               image_path_feature : str) -> None:
     """
     Fonction permettant d'enregistrer le modèle et les artifacts
 
@@ -426,7 +477,8 @@ def log_mlflow(uri_tracking : str,
     - y_test (pd.Series): Variable cible de l'ensemble de données de test.
     - encoders (LabelEncoder): Encodeurs de prétraitement utilisés sur les données.
     - scalers (StandardScaler): Scalers de prétraitement utilisés sur les données.
-    - image_path (str): Lien vers l'image
+    - image_path (str): Lien vers l'image 
+    - image_path_feature (str) : Lien vers l'image avec les feature importances.
 
     Returns : None
     """
@@ -444,9 +496,14 @@ def log_mlflow(uri_tracking : str,
         # On récupère à nouveau l'expérience après la création
         experiment = mlflow.get_experiment_by_name(experiment_name)
 
-    with mlflow.start_run(experiment_id = experiment.experiment_id, run_name=run_name):        
-        # Enregistrement des meilleurs paramètres du modèle
-        mlflow.log_params(best_params)
+    with mlflow.start_run(experiment_id = experiment.experiment_id, run_name=run_name):  
+        if best_params is not None :      
+            # Enregistrement des meilleurs paramètres du modèle
+            mlflow.log_params(best_params)
+
+        # Enregistrement de la feature importance
+        if image_path_feature is not None:
+            mlflow.log_artifact(image_path_feature)
 
         # Enregistrement de la figure learning curve
         mlflow.log_artifact(image_path)
