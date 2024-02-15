@@ -18,7 +18,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau,Callback
 from sqlalchemy import text
 import matplotlib.pyplot as plt
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 from IPython.display import display
 
 
@@ -454,92 +454,119 @@ def plot_learning_curve(model : BaseEstimator,
 #//////////////////////////////////////////////////////////////////////////////
 #                                    MLFlow
 #//////////////////////////////////////////////////////////////////////////////
-def log_mlflow(uri_tracking : str,
-               experiment_name : str,
-               run_name : str,
-               best_params : dict,
-               model : BaseEstimator, model_name : str,
-               X_test : pd.DataFrame, y_test : pd.Series,
-               encoders : LabelEncoder ,scalers : StandardScaler,
-               image_path : str,
-               image_path_feature : str) -> None:
-    """
-    Fonction permettant d'enregistrer le modèle et les artifacts
+class param_mlflow():
+    def __init__(self, 
+                 uri_tracking : str,
+                  model : BaseEstimator,
+                  X_test : pd.DataFrame,
+                  y_test : pd.DataFrame,
+                  experiment_name : str ="test", 
+                  run_name : str ="test",
+                  model_name : str = "test",
+                  images : List[str] =[],
+                  best_params : dict =None,
+                  encoders : dict =None,
+                  scalers : dict =None,                
+                  ):
+        """
+        Classe permettant d'instancier un objet en vue d'enregistrer les 
+        paramètres fournis dans mlflow
 
-    Args :
-    - uri_tracking (str): URI de suivi MLflow.
-    - experiment_name (str): Nom de l'expérience MLflow.
-    - run_name (str): Nom de l'exécution MLflow.
-    - best_params (dict): Meilleurs paramètres du modèle.
-    - model (BaseEstimator): Le modèle d'apprentissage automatique entraîné.
-    - model_name (str): Nom du modèle d'apprentissage automatique.
-    - X_test (pd.DataFrame): Caractéristiques de l'ensemble de données de test.
-    - y_test (pd.Series): Variable cible de l'ensemble de données de test.
-    - encoders (LabelEncoder): Encodeurs de prétraitement utilisés sur les données.
-    - scalers (StandardScaler): Scalers de prétraitement utilisés sur les données.
-    - image_path (str): Lien vers l'image 
-    - image_path_feature (str) : Lien vers l'image avec les feature importances.
+        Args :
+        - uri_tracking (str): URI de suivi MLflow.
+        - experiment_name (str): Nom de l'expérience MLflow.
+        - run_name (str): Nom de l'exécution MLflow.
+        - best_params (dict): Meilleurs paramètres du modèle.
+        - model (BaseEstimator): Le modèle d'apprentissage automatique entraîné.
+        - model_name (str): Nom du modèle d'apprentissage automatique.
+        - X_test (pd.DataFrame): Caractéristiques de l'ensemble de données de test.
+        - y_test (pd.Series): Variable cible de l'ensemble de données de test.
+        - encoders (LabelEncoder): Encodeurs de prétraitement utilisés sur les données.
+        - scalers (StandardScaler): Scalers de prétraitement utilisés sur les données.
+        - image_path (str): Lien vers l'image 
+        - image_path_feature (str) : Lien vers l'image avec les feature importances.
 
-    Returns : None
-    """
-    print("Log du modèle et des artifacts en cours...")
-    mlflow.set_tracking_uri(uri_tracking)
+        Returns : None
+        """
+        self.uri_tracking = uri_tracking
+        self.experiment_name = experiment_name
+        self.run_name = run_name
+        self.model_name = model_name
+        self.best_params = best_params
+        self.model = model
+        self.X_test = X_test
+        self.y_test = y_test
+        self.encoders = encoders
+        self.scalers = scalers
+        self.images =images
 
-    mlflow.sklearn.autolog()
+    def log_mlflow(self) -> None:
+        """ 
+        Fonction permettant de loguer les paramètres fournis à l'objet param_mlflow
+        """
+        print("Log du modèle et des artifacts en cours...")
+        mlflow.set_tracking_uri(self.uri_tracking)
 
-    # Vérification que l'experience existe
-    experiment = mlflow.get_experiment_by_name(experiment_name)
+        mlflow.sklearn.autolog()
 
-    if experiment is None:
-        # Si l'expérience n'existe pas, la créer
-        mlflow.create_experiment(experiment_name)
-        # On récupère à nouveau l'expérience après la création
-        experiment = mlflow.get_experiment_by_name(experiment_name)
+        # Vérification que l'experience existe
+        experiment = mlflow.get_experiment_by_name(self.experiment_name)
 
-    with mlflow.start_run(experiment_id = experiment.experiment_id, run_name=run_name):  
-        if best_params is not None :      
-            # Enregistrement des meilleurs paramètres du modèle
-            mlflow.log_params(best_params)
+        if experiment is None:
+            # Si l'expérience n'existe pas, la créer
+            mlflow.create_experiment(self.experiment_name)
+            # On récupère à nouveau l'expérience après la création
+            experiment = mlflow.get_experiment_by_name(self.experiment_name)
 
-        # Enregistrement de la feature importance
-        if image_path_feature is not None:
-            mlflow.log_artifact(image_path_feature)
+        with mlflow.start_run(experiment_id = experiment.experiment_id, 
+                              run_name=self.run_name):  
+            try :
+                if self.best_params is not None :      
+                    # Enregistrement des meilleurs paramètres du modèle
+                    mlflow.log_params(self.best_params)
 
-        # Enregistrement de la figure learning curve
-        mlflow.log_artifact(image_path)
+                # Enregistrement des graphiques
+                if len(self.images)!=0:
+                    for image in self.images :
+                        mlflow.log_artifact(image)
 
-        # Calcul des métriques
-        y_pred = model.predict(X_test)
-        r2 = r2_score(y_test, y_pred)
-        mse = mean_squared_error(y_test, y_pred)
-        rmse = np.sqrt(mse)
-        mae = mean_absolute_error(y_test, y_pred)
-        mape = mean_absolute_percentage_error(y_test, y_pred)
-        msle = mean_squared_log_error(y_test, y_pred)
+                # Calcul des métriques
+                y_pred = self.model.predict(self.X_test)
+                r2 = r2_score(self.y_test, y_pred)
+                mse = mean_squared_error(self.y_test, y_pred)
+                rmse = np.sqrt(mse)
+                mae = mean_absolute_error(self.y_test, y_pred)
+                mape = mean_absolute_percentage_error(self.y_test, y_pred)
+                msle = mean_squared_log_error(self.y_test, y_pred)
 
-        # Enregistrement des métriques
-        mlflow.log_metric("train_r2", r2)
-        mlflow.log_metric("train_mse", mse)
-        mlflow.log_metric("train_rmse", rmse)
-        mlflow.log_metric("train_mae", mae)
-        mlflow.log_metric("train_mape", mape)
-        mlflow.log_metric("train_msle", msle)
+                # Enregistrement des métriques
+                mlflow.log_metric("train_r2", r2)
+                mlflow.log_metric("train_mse", mse)
+                mlflow.log_metric("train_rmse", rmse)
+                mlflow.log_metric("train_mae", mae)
+                mlflow.log_metric("train_mape", mape)
+                mlflow.log_metric("train_msle", msle)
 
-        # Enregistrement du modèle
-        input_example = X_test.head(1)
-        signature = infer_signature(input_example,model.predict(input_example))
-        mlflow.sklearn.log_model(model,
-                                "ImmoApp",
-                                input_example = input_example,
-                                signature=signature,
-                                registered_model_name = model_name)
-        
-        # Sauvegarde des encoders et scalers
-        joblib.dump(encoders, "./encoders.joblib")
-        joblib.dump(scalers, "./scalers.joblib")
-        mlflow.log_artifact("./encoders.joblib")
-        mlflow.log_artifact("./scalers.joblib")
+                # Enregistrement du modèle
+                input_example = self.X_test.head(1)
+                signature = infer_signature(input_example,self.model.predict(input_example))
+                mlflow.sklearn.log_model(self.model,
+                                        "ImmoApp",
+                                        input_example = input_example,
+                                        signature=signature,
+                                        registered_model_name = self.model_name)
+                
+                # Sauvegarde des encoders et scalers
+                if len(self.encoders)!=0:
+                    joblib.dump(self.encoders, "./encoders.joblib")
+                    mlflow.log_artifact("./encoders.joblib")
+                if len(self.scalers)!=0:
+                    joblib.dump(self.scalers, "./scalers.joblib")
+                    mlflow.log_artifact("./scalers.joblib")
+            except Exception as e:
+                print(f"Erreur dans le chargement de données dans mlflow : {e}")
 
-        # Fermeture du run
-        mlflow.end_run()    
-    return
+            finally:
+                # Fermeture du run
+                mlflow.end_run()    
+        return
