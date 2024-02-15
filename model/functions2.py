@@ -6,6 +6,7 @@ from mlflow.models import infer_signature
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error,mean_squared_log_error
 import joblib
 import pandas as pd
+# from drive.MyDrive.PCO.connection import connection_with_sqlalchemy
 from connection import connection_with_sqlalchemy
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.base import BaseEstimator
@@ -14,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import make_scorer, r2_score
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense,Dropout
 from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau,Callback
 from sqlalchemy import text
 import matplotlib.pyplot as plt
@@ -81,50 +82,8 @@ def loading_data(query : str) -> pd.DataFrame:
 
 
 #//////////////////////////////////////////////////////////////////////////////
-#                       Split des données (2 méthodes)
+#                       Split des données 
 #//////////////////////////////////////////////////////////////////////////////
-def split(df: pd.DataFrame):
-    """ 
-    Fonction permettant de séparer les données en données d'entraînement et de test
-
-    Args :
-    - df (pd.DataFrame) : Données à splitter
-
-    Return :
-    - X_train (pd.Dataframe) : Données d'entrée d'entraînement.
-    - y_train (pd.Series) : Données de sortie d'entraînement.
-    - X_test (pd.Dataframe) : Données d'entrée de test.
-    - y_test (pd.Series) : Données de sortie de test.
-    """
-    print("Split des données en cours...")
-    # Suppression des lignes dupliquées
-    df = df.drop_duplicates()
-
-    # Tri du dataframe par ordre croissant de date
-    df.loc[:, 'DATE_MUTATION'] = pd.to_datetime(df['DATE_MUTATION'])
-    df = df.sort_values(by='DATE_MUTATION', ascending=True)
-
-    # Suppression de la colonne date
-    df = df.drop("DATE_MUTATION", axis=1)
-
-    # Reset de L'index
-    df = df.reset_index(drop=True)
-
-    # Split de données
-    nb_lines_train = int(df.shape[0]*0.8)
-    df_train = df.iloc[:nb_lines_train,:]
-    df_test = df.iloc[nb_lines_train:,:]
-    # Suppression des lignes dans X_test dont les ID_COMMUNE ne sont pas présents dans df_train
-    df_test = df_test[df_test['ID_COMMUNE'].isin(df_train['ID_COMMUNE'])]
-    # Séparation des données 
-    y_train = df_train.loc[:,"MONTANT"]
-    X_train = df_train.drop("MONTANT",axis=1)
-    y_test = df_test.loc[:,"MONTANT"]
-    X_test = df_test.drop("MONTANT", axis=1)
-    print("Split OK")
-    return X_train,y_train, X_test, y_test
-
-
 def split_with_m2(df: pd.DataFrame):
     """ 
     Fonction permettant de séparer les données en données d'entraînement et de test,
