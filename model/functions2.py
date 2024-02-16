@@ -19,40 +19,91 @@ from tensorflow.keras.layers import Dense,Dropout
 from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau,Callback
 from sqlalchemy import text
 import matplotlib.pyplot as plt
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Any
 from IPython.display import display
 
 
+# L.32 : Construction de la requête de base 
+# L.104 : Chargement des données
+# L.132 : Split des données 
+# L.192 : Option de filtrage des données
+# L.289 : Labellisation et standardisation des données
+# L.342 : RANDOM FOREST REGRESSOR
+# ....
+
 
 #//////////////////////////////////////////////////////////////////////////////
-#     Objet pour ajouter des métriques de performances au réseau de neurones
+#                       Construction de la requête de base
 #//////////////////////////////////////////////////////////////////////////////
-class MetricsCallback(Callback):
-    def __init__(self, X_train, y_train, X_test, y_test):
-        self.X_train = X_train
-        self.y_train = y_train
-        self.X_test = X_test
-        self.y_test = y_test
-        self.train_r2 = []
-        self.val_r2 = []
-        self.train_rmse = []
-        self.val_rmse = []
+def construcion_requete(region: str,
+                        type_de_bien : str,
+                        nb_ventes_mini : int,
+                        surface_terrain : bool,
+                        nb_mois : int) -> Any:
+    """
+    Fonction permettant de créer la structure de la requête en fonction des divers éléments passés.
 
-    def on_epoch_end(self, epoch, logs=None):
-        train_pred = self.model.predict(self.X_train)
-        val_pred = self.model.predict(self.X_test)
-        
-        train_r2 = r2_score(self.y_train, train_pred)
-        val_r2 = r2_score(self.y_test, val_pred)
-        
-        train_rmse = np.sqrt(mean_squared_error(self.y_train, train_pred))
-        val_rmse = np.sqrt(mean_squared_error(self.y_test, val_pred))
-        
-        self.train_r2.append(train_r2)
-        self.val_r2.append(val_r2)
-        self.train_rmse.append(train_rmse)
-        self.val_rmse.append(val_rmse)
+    Args:
+    - region (str) : Nom d'une région ou ''
+    - type de bien (str) : '' , 'Appartement' ou 'Maison'
+    - nb_ventes_mini (int) : Nombre de ventes minimum dans une commune
+    - surface_terrain (bool) : Inclure la surface du terrain True ou False.
+    - nb_mois (int) : Nombre de mois pour la récupération des données
 
+    Returns:
+    - where_clause (str) : Condition de filtrage sur les régions et le type de bien
+    - query (str) : requête complète permettant de récupérer les données
+    
+    Remarque :
+    where_clause sera utilisé par la suite dans la fonction de filtrage des outliers
+    """
+    # Les filtres de la requête permettent de filtrer les valeurs aberrantes vu dans l'EDA
+    where_clause = "WHERE R.Name_region NOT IN('Martinique', 'Guyane', 'La Réunion', 'Mayotte', 'Guadeloupe') "
+    if region!='' and type_de_bien=='':
+        where_clause = f"WHERE R.Name_region = '{region}'"
+    elif region!='' and  type_de_bien!='': 
+        where_clause = f"WHERE R.Name_region = '{region}' AND T.NAME_TYPE_BIEN='{type_de_bien}'"
+    elif region=='' and  type_de_bien!='': 
+        where_clause+= f"AND T.NAME_TYPE_BIEN='{type_de_bien}'"
+
+
+    if nb_mois is not None:
+        where_clause +=f" AND V.DATE_MUTATION >= DATE_SUB((SELECT MAX(DATE_MUTATION) FROM VENTES), INTERVAL {nb_mois} MONTH)"
+        
+    query=f"""
+    # Table pour compter le nombre de ventes par commune
+    WITH nb_ventes_mini AS(
+    SELECT
+        ID_COMMUNE AS ID_COMMUNE,
+        count(*) nb_ventes_par_commune
+    FROM VENTES 
+    WHERE DATE_MUTATION >= DATE_SUB((SELECT MAX(DATE_MUTATION) FROM VENTES), INTERVAL {nb_mois} MONTH)
+    GROUP BY ID_COMMUNE
+    )
+
+    # Selection des variables voulues pour l'entraînement du modèle
+    SELECT 
+        V.SURFACE_BATI,
+        V.ID_COMMUNE,
+        V.DATE_MUTATION,
+        {'V.SURFACE_TERRAIN,' if surface_terrain==True else ''}
+        V.MONTANT
+    FROM VENTES V
+    INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
+    INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
+    INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
+    INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION
+    {where_clause}
+    AND V.MONTANT>15000  AND V.MONTANT<6500000
+    AND V.SURFACE_BATI>0
+    AND V.NB_PIECES>0
+    AND V.ID_COMMUNE IN (
+        SELECT 
+            ID_COMMUNE 
+        FROM nb_ventes_mini 
+        WHERE nb_ventes_par_commune>={nb_ventes_mini})
+    """
+    return where_clause , query
 
 #//////////////////////////////////////////////////////////////////////////////
 #                       Chargement des données
@@ -141,9 +192,109 @@ def split_with_m2(df: pd.DataFrame):
 
 
 #//////////////////////////////////////////////////////////////////////////////
+#                       Option de filtrage des données
+#//////////////////////////////////////////////////////////////////////////////
+def filtrage(df : pd.DataFrame, tx_filtrage : List[int], where_clause :str ) -> pd.DataFrame:
+    """
+    Fonction permettant de supprimer les outliers et de filtrer les données
+
+    Args :
+    - df (pd.DataFrame) : Dataframe contenant les données pré-sélectionnées
+    - tx_filtrage (List[int,int]) : Paramètres du filtrage
+    - where_clause (str) : Condition de filtrage sur le type de bien et la région.
+
+    Returns :
+    - df_filtered (pd.DataFrame) : Dataframe avec les données filtrées.
+
+    Remarques sur le taux de filtrage :
+
+    - Le premier élément est le nombre de vente minimum par commune
+    - Le deuxième élément est le pourcentage de outliers dans une commune
+
+    Exemple pour tx_filtrage =[10,30] les lignes qui seront conservées seront :
+    - Les communes dans lesquelles il restera minimum 10 ventes après suppression des outliers
+    - ET  moins de 30% d'outliers
+    - ET les lignes dont le montant est inférieur à la limite des outliers
+    - tx_filtrage = [0,100] => Suppression des lignes dont le montant est supérieur à la limite des outliers.
+    """
+    # Affichage du nombre de communes et de vantes avant suppression
+    print(f"Il y a {df.ID_COMMUNE.nunique()} communes avec plus de 10 ventes avant", end="")
+    print(f" suppression des outliers, pour un total de {df.shape[0]} ventes")
+    
+    # Calcul de la limite haute pour enlever les outliers
+    q1 = np.percentile(df["MONTANT"], 25)  # Premier quartile (25e percentile)
+    q3 = np.percentile(df["MONTANT"], 75)  # Troisième quartile (75e percentile)
+    iqr = q3 - q1  # Intervalle interquartile
+    # Calcul de la limite supérieure des moustaches
+    whisker_upper = q3 + 1.5 * iqr
+
+    # Chargement des données pour réaliser les statistiques 
+    df_supp = loading_data(f""" 
+        WITH OUTLIERS AS(
+        SELECT 
+            V.ID_COMMUNE,
+            count(*) AS nb_outliers  
+        FROM VENTES V
+        INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
+        INNER JOIN COMMUNES C ON V.ID_COMMUNE=C.ID_COMMUNE
+        INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
+        INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION           
+        {where_clause}
+        AND MONTANT > {whisker_upper}
+        GROUP BY ID_COMMUNE),
+
+        ALL_VENTES AS(
+        SELECT 
+            V.ID_COMMUNE,
+            count(*) AS total_ventes  
+        FROM VENTES V
+        INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
+        INNER JOIN COMMUNES C ON V.ID_COMMUNE=C.ID_COMMUNE
+        INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
+        INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION           
+        {where_clause}
+        GROUP BY ID_COMMUNE
+        )
+
+        SELECT 
+            A.*,
+            B.total_ventes,
+            B.total_ventes - A.nb_outliers AS ventes_restantes,
+            C.NAME_COMMUNE,
+            ROUND(A.nb_outliers*100/B.total_ventes,2) as pourcentage_ventes_retirees
+        FROM OUTLIERS A
+
+        INNER JOIN ALL_VENTES B ON A.ID_COMMUNE=B.ID_COMMUNE
+        INNER JOIN COMMUNES C ON A.ID_COMMUNE=C.ID_COMMUNE
+
+        ORDER BY nb_outliers DESC
+        """)
+    # Affichage d'un dataframe avec les statistiques, trié par ordre décroissant du nombre d'outliers
+    display(df_supp.head(10))
+
+    # Affichage de l'incidence du filtrage
+    print(f"Nombre d'outliers : {df_supp.nb_outliers.sum()}")
+    print(f"Nombre de commune avec des outliers : {df_supp.shape[0]}")
+    print("Nombre de communes contenant des outliers et pour lesquels il", end="")
+    print("reste plus de 10 ventes après suppression des outliers : ", end="")
+    print(df_supp.loc[df_supp.ventes_restantes>=tx_filtrage[0],:].shape[0])
+    print("Nombre de communes avec plus de 30% de ventes retirées : ",end="")
+    print(df_supp.loc[df_supp.pourcentage_ventes_retirees>tx_filtrage[1],:].shape[0])
+    filtre_de_supp = df_supp.loc[(df_supp.ventes_restantes<tx_filtrage[0]) | (df_supp.pourcentage_ventes_retirees>tx_filtrage[1]),"ID_COMMUNE"].tolist()
+    print(f"Nombre de communes qui seront retirées : {len(filtre_de_supp)}")
+    nb_lignes_apres_filtrage = df.loc[(~df['ID_COMMUNE'].isin(filtre_de_supp)) & (df.MONTANT<whisker_upper),:].shape[0]
+    print(f"Nombre de ventes restantes après suppression des outlier et après filtrage : {nb_lignes_apres_filtrage}")
+    print(f"Il y a donc eu {round((df.shape[0]-nb_lignes_apres_filtrage)*100/df.shape[0],2)}% de lignes supprimées après filtrage")
+    
+    df_filtered = df.loc[(~df['ID_COMMUNE'].isin(filtre_de_supp)) & (df.MONTANT<whisker_upper),:]
+    return df_filtered
+
+
+#//////////////////////////////////////////////////////////////////////////////
 #                  Labellisation et standardisation des données
 #//////////////////////////////////////////////////////////////////////////////
-def encod_scal(X_train : pd.DataFrame, X_test : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame , dict, dict]:
+def encod_scal(X_train : pd.DataFrame, 
+               X_test : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame , dict, dict]:
     """ 
     Fonction permettant de labelliser puis de standardiser X_train et X_test  
 
@@ -192,10 +343,12 @@ def encod_scal(X_train : pd.DataFrame, X_test : pd.DataFrame) -> Tuple[pd.DataFr
 
 
 #//////////////////////////////////////////////////////////////////////////////
-#             Fonctions pour les différents modèles
+#                       RANDOM FOREST REGRESSOR
 #//////////////////////////////////////////////////////////////////////////////
 def train_model_randomforest(X_train : pd.DataFrame ,
                 y_train : pd.Series,
+                X_test : pd.DataFrame,
+                y_test : pd.Series,
                 param_grid : dict, 
                 cv : int) -> Tuple[BaseEstimator, Dict] : 
     """
@@ -205,6 +358,8 @@ def train_model_randomforest(X_train : pd.DataFrame ,
     Args:
     - X_train (pd.Dataframe) : Données d'entrée d'entraînement.
     - y_train (pd.Series) : Données de sortie d'entraînement.
+    - X_test (pd.DataFrame) : Données d'entrée de test.
+    - y_test (pd.series) : Données de sortie de test.
     - param_grid (dict) : Dictionnaire avec les différent hyperparamètres à tester.
     - cv (int) : Un entier pour choisir le nombre de pli pour la validation croisée.
 
@@ -241,7 +396,10 @@ def train_model_randomforest(X_train : pd.DataFrame ,
     model=RandomForestRegressor(**best_params)
     model.fit(X_train,y_train)
 
-    # Affichage de l'importance des variables
+    #-------------------------------------------------------------------
+    # Affichage de l'importance des variables et de la courbe d'apprentissage
+    #                    et sauvegarde pour mlflow
+    #-------------------------------------------------------------------
     importances = model.feature_importances_
 
     # Tri des indices des variables par importance
@@ -258,17 +416,67 @@ def train_model_randomforest(X_train : pd.DataFrame ,
     plt.tight_layout()
 
     # Enregistrer l'image localement
-    image_path_feature = f"./feature_importance.png"
+    image_path_feature = f"./images/feature_importance.png"
     plt.savefig(image_path_feature)
     plt.show()
     plt.show()
+
+
+    # Courbe d'apprentissage
+    plt.figure(figsize=(10, 6))
+    plt.title("Courbe d'apprentissage")
+    train_scores = [r2_score(y_train[:i+1], model.predict(X_train[:i+1])) for i in range(len(model.estimators_))]
+    test_scores = [r2_score(y_test[:i+1], model.predict(X_test[:i+1])) for i in range(len(model.estimators_))]
+    plt.plot(range(1, len(model.estimators_) + 1), train_scores, label="Train", color="Blue")
+    plt.plot(range(1, len(model.estimators_) + 1), test_scores, label="Test", color="green")
+    plt.xlabel("Nombre d'arbres")
+    plt.ylabel("Score R²")
+    plt.legend()
+    image_path_learning = f"./images/feature_learning.png"
+    plt.savefig(image_path_learning)
+    plt.show()
+
     print("Entraînement OK")
-    return model, best_params, image_path_feature
+    return model, best_params, image_path_feature, image_path_learning
+
+
+
+#//////////////////////////////////////////////////////////////////////////////
+#                       TENSORFLOW SEQUENTIAL
+#//////////////////////////////////////////////////////////////////////////////
+
+#     Objet pour ajouter des métriques de performances au réseau de neurones
+class MetricsCallback(Callback):
+    def __init__(self, X_train, y_train, X_test, y_test):
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_test = X_test
+        self.y_test = y_test
+        self.train_r2 = []
+        self.val_r2 = []
+        self.train_rmse = []
+        self.val_rmse = []
+
+    def on_epoch_end(self, epoch, logs=None):
+        train_pred = self.model.predict(self.X_train)
+        val_pred = self.model.predict(self.X_test)
+        
+        train_r2 = r2_score(self.y_train, train_pred)
+        val_r2 = r2_score(self.y_test, val_pred)
+        
+        train_rmse = np.sqrt(mean_squared_error(self.y_train, train_pred))
+        val_rmse = np.sqrt(mean_squared_error(self.y_test, val_pred))
+        
+        self.train_r2.append(train_r2)
+        self.val_r2.append(val_r2)
+        self.train_rmse.append(train_rmse)
+        self.val_rmse.append(val_rmse)
 
 def train_tensor_flow(X_train,y_train,X_test,y_test):
     model = Sequential([Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
-                        Dense(128, activation='relu'), 
-                        Dense(1) 
+                        Dropout(0,2),
+                        Dense(64, activation='relu'), 
+                        Dense(1, activation='linear') 
                         ])
     # Imprimer le summary du modèle
     model.summary()
@@ -277,10 +485,10 @@ def train_tensor_flow(X_train,y_train,X_test,y_test):
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 
     # Définition de l'arrêt précoce (Early Stopping)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=4, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=4,min_delta=0.005, restore_best_weights=True)
     # Réduction de la descente de gradient
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, min_lr=0.0001)
-    # Enregistrement de metriques complémentaires
+    reduce_lr = ReduceLROnPlateau(monitor='val_mae', factor=0.1, patience=3,min_delta=0.01, min_lr=0.0001)
+    # Enregistrement de métriques complémentaires
     metrics_callback = MetricsCallback(X_train, y_train, X_test, y_test)
 
     # Entraînement du modèle avec l'arrêt précoce
@@ -335,10 +543,15 @@ def train_tensor_flow(X_train,y_train,X_test,y_test):
     print("Entraînement OK")
     return model,image_path
 
+
+#//////////////////////////////////////////////////////////////////////////////
+#                               XGBoost
+#//////////////////////////////////////////////////////////////////////////////
+
 #//////////////////////////////////////////////////////////////////////////////
 #             Graphiques pour visualiser les données d'entraînement
 #//////////////////////////////////////////////////////////////////////////////
-def plot_learning_curve(model : BaseEstimator,
+def plot_validation_curve(model : BaseEstimator,
                         type_de_bien : str ,
                         X : pd.DataFrame,
                         y : pd.Series) -> str:
@@ -404,11 +617,10 @@ def plot_learning_curve(model : BaseEstimator,
 
     plt.tight_layout()
     # Enregistrer l'image localement
-    image_path = f"./Learning_curve_{type_de_bien}.png"
+    image_path = f"./images/validation_curve.png"
     plt.savefig(image_path)
     plt.show()
     return image_path
-
 
 #//////////////////////////////////////////////////////////////////////////////
 #                                    MLFlow

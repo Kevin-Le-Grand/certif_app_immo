@@ -6,5 +6,4 @@ push.sh
 model
 scalers.joblib
 encoders.joblib
-Learning_curve_Appartement.png
-Learning_curve_Maison.png
+images
