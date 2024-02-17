@@ -86,6 +86,8 @@ def construcion_requete(region: str,
         V.SURFACE_BATI,
         V.ID_COMMUNE,
         V.DATE_MUTATION,
+        T.NAME_TYPE_BIEN,
+        R.Name_region,
         {'V.SURFACE_TERRAIN,' if surface_terrain==True else ''}
         V.MONTANT
     FROM VENTES V
@@ -547,7 +549,101 @@ def train_tensor_flow(X_train,y_train,X_test,y_test):
 #//////////////////////////////////////////////////////////////////////////////
 #                               XGBoost
 #//////////////////////////////////////////////////////////////////////////////
+def train_model_xgboost(X_train: pd.DataFrame, 
+                        y_train: pd.Series, 
+                        X_test: pd.DataFrame, 
+                        y_test: pd.Series, 
+                        param_grid: Dict, 
+                        cv: int) -> Tuple[BaseEstimator, Dict, str, str]:
+    """
+    Fonction permettant d'entraîner un modèle XGBoost et de sauvegarder un graphique 
+    avec l'importance des variables et une courbe d'apprentissage.
 
+    Args:
+    - X_train (pd.DataFrame): Données d'entrée d'entraînement.
+    - y_train (pd.Series): Données de sortie d'entraînement.
+    - X_test (pd.DataFrame): Données d'entrée de test.
+    - y_test (pd.series): Données de sortie de test.
+    - param_grid (dict): Dictionnaire avec les différents hyperparamètres à tester.
+    - cv (int): Un entier pour choisir le nombre de pli pour la validation croisée.
+
+    Return:
+    - model (BaseEstimator): Modèle entraîné.
+    - best_params (dict): Dictionnaire avec les meilleurs hyperparamètres.
+    - image_path_feature (str): Chemin de l'image d'importance des variables.
+    - image_path_learning (str): Chemin de l'image de la courbe d'apprentissage.
+
+    Remarque :
+    - Le modèle est entraîné avec GridSearchCV en utilisant XGBRegressor(),
+    param_grid et le nombre de plis cv.
+    - Les meilleurs paramètres du modèle sont établis en fonction de la métrique r2_score.
+    - Le modèle est ré-entraîné avec les meilleurs paramètres.
+    """
+    print("Entraînement en cours ...")
+    
+    # Type de métrique pour la recherche des meilleurs paramètres
+    scorer = {'r2': 'r2'}
+
+    # Entraînement avec les différents paramètres
+    grid_search = GridSearchCV(XGBRegressor(), 
+                               param_grid, 
+                               cv=cv, 
+                               scoring=scorer, 
+                               refit='r2',
+                               verbose=2)
+    
+    grid_search.fit(X_train, y_train)
+
+    # Affichage des différents résultats
+    results = pd.DataFrame(grid_search.cv_results_)
+    display(results.head())
+    best_params = grid_search.best_params_
+
+    # Entraînement des données avec les meilleurs paramètres
+    print("Ré-entraînement avec les meilleurs hyperparamètres en cours...")
+    model = XGBRegressor(**best_params)
+    model.fit(X_train, y_train)
+
+    # Affichage de l'importance des variables et de la courbe d'apprentissage
+    # et sauvegarde des graphiques
+    importances = model.feature_importances_
+
+    # Tri des indices des variables par importance
+    indices = np.argsort(importances)[::-1]
+
+    # Plot de l'importance des variables
+    plt.figure(figsize=(10, 6))
+    plt.title("Importance des variables")
+    plt.bar(range(X_train.shape[1]), importances[indices], color="b", align="center")
+    plt.xticks(range(X_train.shape[1]), X_train.columns[indices], rotation=90)
+    plt.xlim([-1, X_train.shape[1]])
+    plt.xlabel("Variables")
+    plt.ylabel("Importance")
+    plt.tight_layout()
+    
+    # Enregistrer l'image localement
+    image_path_feature = "./images/feature_importance.png"
+    plt.savefig(image_path_feature)
+    plt.show()
+
+    # Courbe d'apprentissage
+    plt.figure(figsize=(10, 6))
+    plt.title("Courbe d'apprentissage")
+    train_scores = [r2_score(y_train[:i+1], model.predict(X_train[:i+1])) for i in range(len(X_train))]
+    test_scores = [r2_score(y_test[:i+1], model.predict(X_test[:i+1])) for i in range(len(X_test))]
+    plt.plot(range(1, len(X_train) + 1), train_scores, label="Train", color="Blue")
+    plt.plot(range(1, len(X_test) + 1), test_scores, label="Test", color="green")
+    plt.xlabel("Nombre d'échantillons")
+    plt.ylabel("Score R²")
+    plt.legend()
+    image_path_learning = "./images/feature_learning.png"
+    plt.savefig(image_path_learning)
+    plt.show()
+
+    print("Entraînement OK")
+    return model, best_params, image_path_feature, image_path_learning
+
+    
 #//////////////////////////////////////////////////////////////////////////////
 #             Graphiques pour visualiser les données d'entraînement
 #//////////////////////////////////////////////////////////////////////////////
