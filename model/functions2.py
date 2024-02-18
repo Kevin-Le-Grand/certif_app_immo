@@ -1,13 +1,15 @@
 import os
 import numpy as np
 import seaborn as sns
+# Ligne à décommenter dans colab :
+# from drive.MyDrive.PCO.connection import connection_with_sqlalchemy
+# Ligne à commenter dans Colab :
+from connection import connection_with_sqlalchemy
 import mlflow
 from mlflow.models import infer_signature
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error,mean_squared_log_error
 import joblib
 import pandas as pd
-# from drive.MyDrive.PCO.connection import connection_with_sqlalchemy
-from connection import connection_with_sqlalchemy
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import GridSearchCV
@@ -17,20 +19,23 @@ from sklearn.metrics import make_scorer, r2_score
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense,Dropout
 from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau,Callback
+from xgboost import XGBRegressor
+from sklearn.model_selection import learning_curve
 from sqlalchemy import text
 import matplotlib.pyplot as plt
 from typing import Tuple, Dict, List, Any
 from IPython.display import display
 
-
-# L.32 : Construction de la requête de base 
-# L.104 : Chargement des données
-# L.132 : Split des données 
-# L.192 : Option de filtrage des données
-# L.289 : Labellisation et standardisation des données
-# L.342 : RANDOM FOREST REGRESSOR
-# ....
-
+# L.39 : Construction de la requête de base 
+# L.114 : Chargement des données
+# L.141 : Split des données 
+# L.200 : Option de filtrage des données
+# L.299 : Labellisation et standardisation des données
+# L.351 : RANDOM FOREST REGRESSOR
+# L.450 : TENSORFLOW
+# L.555 : XGBOOST
+# L.669 : Graphiques pour visualiser les données d'entraînement
+# L.743 : LOG MLFLOW
 
 #//////////////////////////////////////////////////////////////////////////////
 #                       Construction de la requête de base
@@ -86,8 +91,8 @@ def construcion_requete(region: str,
         V.SURFACE_BATI,
         V.ID_COMMUNE,
         V.DATE_MUTATION,
-        T.NAME_TYPE_BIEN,
-        R.Name_region,
+        # T.NAME_TYPE_BIEN,
+        # R.Name_region,
         {'V.SURFACE_TERRAIN,' if surface_terrain==True else ''}
         V.MONTANT
     FROM VENTES V
@@ -627,15 +632,31 @@ def train_model_xgboost(X_train: pd.DataFrame,
     plt.show()
 
     # Courbe d'apprentissage
+    train_sizes=[i / 10.0 for i in range(1, 11)]
+    train_sizes[-1]=0.99
+    train_sizes, train_scores, validation_scores = learning_curve(
+        model, X_train, y_train, train_sizes=train_sizes, cv=3)
+
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    validation_scores_mean = np.mean(validation_scores, axis=1)
+    validation_scores_std = np.std(validation_scores, axis=1)
+
     plt.figure(figsize=(10, 6))
+    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+                    train_scores_mean + train_scores_std, alpha=0.1,
+                    color="r")
+    plt.fill_between(train_sizes, validation_scores_mean - validation_scores_std,
+                    validation_scores_mean + validation_scores_std, alpha=0.1,
+                    color="g")
+    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+            label="Score d'entraînement")
+    plt.plot(train_sizes, validation_scores_mean, 'o-', color="g",
+            label="Score de validation croisée")
+    plt.xlabel("Taille de l'ensemble d'entraînement")
+    plt.ylabel("Score")
     plt.title("Courbe d'apprentissage")
-    train_scores = [r2_score(y_train[:i+1], model.predict(X_train[:i+1])) for i in range(len(X_train))]
-    test_scores = [r2_score(y_test[:i+1], model.predict(X_test[:i+1])) for i in range(len(X_test))]
-    plt.plot(range(1, len(X_train) + 1), train_scores, label="Train", color="Blue")
-    plt.plot(range(1, len(X_test) + 1), test_scores, label="Test", color="green")
-    plt.xlabel("Nombre d'échantillons")
-    plt.ylabel("Score R²")
-    plt.legend()
+    plt.legend(loc="best")
     image_path_learning = "./images/feature_learning.png"
     plt.savefig(image_path_learning)
     plt.show()
