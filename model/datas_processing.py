@@ -223,8 +223,7 @@ def grouped_datas(df : pd.DataFrame)-> pd.DataFrame:
     return df
 
 def features_and_foreign_keys(df : pd.DataFrame , 
-                              liste_ids : list ,
-                              annee : str) -> pd.DataFrame :
+                              liste_ids : list ) -> pd.DataFrame :
     """
     Fonction permettant de supprimer des lignes dans les données à insérer et d'adapter
     les variables du data frame à celles de la base de données :
