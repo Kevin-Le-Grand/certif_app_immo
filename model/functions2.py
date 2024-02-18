@@ -20,22 +20,22 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense,Dropout
 from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau,Callback
 from xgboost import XGBRegressor
-from sklearn.model_selection import learning_curve
+from sklearn.model_selection import learning_curve, validation_curve
 from sqlalchemy import text
 import matplotlib.pyplot as plt
 from typing import Tuple, Dict, List, Any
 from IPython.display import display
 
-# L.39 : Construction de la requête de base 
-# L.114 : Chargement des données
-# L.141 : Split des données 
-# L.200 : Option de filtrage des données
-# L.299 : Labellisation et standardisation des données
-# L.351 : RANDOM FOREST REGRESSOR
-# L.450 : TENSORFLOW
-# L.555 : XGBOOST
-# L.669 : Graphiques pour visualiser les données d'entraînement
-# L.743 : LOG MLFLOW
+# L.41 : Construction de la requête de base 
+# L.116 : Chargement des données
+# L.145 : Split des données 
+# L.202 : Option de filtrage des données
+# L.301 : Labellisation et standardisation des données
+# L.355 : RANDOM FOREST REGRESSOR
+# L.405 : TENSORFLOW
+# L.508 : XGBOOST
+# L.560 : Graphiques pour visualiser les données d'entraînement
+# L.676 : LOG MLFLOW
 
 #//////////////////////////////////////////////////////////////////////////////
 #                       Construction de la requête de base
@@ -354,8 +354,6 @@ def encod_scal(X_train : pd.DataFrame,
 #//////////////////////////////////////////////////////////////////////////////
 def train_model_randomforest(X_train : pd.DataFrame ,
                 y_train : pd.Series,
-                X_test : pd.DataFrame,
-                y_test : pd.Series,
                 param_grid : dict, 
                 cv : int) -> Tuple[BaseEstimator, Dict] : 
     """
@@ -365,8 +363,6 @@ def train_model_randomforest(X_train : pd.DataFrame ,
     Args:
     - X_train (pd.Dataframe) : Données d'entrée d'entraînement.
     - y_train (pd.Series) : Données de sortie d'entraînement.
-    - X_test (pd.DataFrame) : Données d'entrée de test.
-    - y_test (pd.series) : Données de sortie de test.
     - param_grid (dict) : Dictionnaire avec les différent hyperparamètres à tester.
     - cv (int) : Un entier pour choisir le nombre de pli pour la validation croisée.
 
@@ -378,7 +374,7 @@ def train_model_randomforest(X_train : pd.DataFrame ,
     - Le modèle est entraîné avec GridSearchCV en utilisant RandomForestRegressor() ,
     param_grid, le nombre de pli cv.
     - Les meilleurs paramètres du modèle sont établie en fonction de la métrique r2 score.
-    - Le modèle est ré-entraîné avec les meilleurs paramètres
+    - Le modèle retourné est celui avec les meilleurs paramètres.
     """
     print("Entraînement en cours ...")
     # Type de métriques pour la recherche de meilleurs paramètres
@@ -395,56 +391,13 @@ def train_model_randomforest(X_train : pd.DataFrame ,
 
     # Affichage des différents résultats
     results = pd.DataFrame(grid_search.cv_results_)
+    results = results.sort_values(by='rank_test_r2')
     display(results.head())
     best_params = grid_search.best_params_
     
-    # Entraînement des données avec les meilleurs paramètres
-    print("Ré-entraînement avec les meilleurs hyperparamètres en cours...")
-    model=RandomForestRegressor(**best_params)
-    model.fit(X_train,y_train)
-
-    #-------------------------------------------------------------------
-    # Affichage de l'importance des variables et de la courbe d'apprentissage
-    #                    et sauvegarde pour mlflow
-    #-------------------------------------------------------------------
-    importances = model.feature_importances_
-
-    # Tri des indices des variables par importance
-    indices = np.argsort(importances)[::-1]
-
-    # Plot
-    plt.figure(figsize=(10, 6))
-    plt.title("Importance des variables")
-    plt.bar(range(X_train.shape[1]), importances[indices], color="b", align="center")
-    plt.xticks(range(X_train.shape[1]), X_train.columns[indices], rotation=90)
-    plt.xlim([-1, X_train.shape[1]])
-    plt.xlabel("Variables")
-    plt.ylabel("Importance")
-    plt.tight_layout()
-
-    # Enregistrer l'image localement
-    image_path_feature = f"./images/feature_importance.png"
-    plt.savefig(image_path_feature)
-    plt.show()
-    plt.show()
-
-
-    # Courbe d'apprentissage
-    plt.figure(figsize=(10, 6))
-    plt.title("Courbe d'apprentissage")
-    train_scores = [r2_score(y_train[:i+1], model.predict(X_train[:i+1])) for i in range(len(model.estimators_))]
-    test_scores = [r2_score(y_test[:i+1], model.predict(X_test[:i+1])) for i in range(len(model.estimators_))]
-    plt.plot(range(1, len(model.estimators_) + 1), train_scores, label="Train", color="Blue")
-    plt.plot(range(1, len(model.estimators_) + 1), test_scores, label="Test", color="green")
-    plt.xlabel("Nombre d'arbres")
-    plt.ylabel("Score R²")
-    plt.legend()
-    image_path_learning = f"./images/feature_learning.png"
-    plt.savefig(image_path_learning)
-    plt.show()
-
+    model = grid_search.best_estimator_
     print("Entraînement OK")
-    return model, best_params, image_path_feature, image_path_learning
+    return model, best_params
 
 
 
@@ -556,10 +509,8 @@ def train_tensor_flow(X_train,y_train,X_test,y_test):
 #//////////////////////////////////////////////////////////////////////////////
 def train_model_xgboost(X_train: pd.DataFrame, 
                         y_train: pd.Series, 
-                        X_test: pd.DataFrame, 
-                        y_test: pd.Series, 
                         param_grid: Dict, 
-                        cv: int) -> Tuple[BaseEstimator, Dict, str, str]:
+                        cv: int) -> Tuple[BaseEstimator, Dict, str, str, str]:
     """
     Fonction permettant d'entraîner un modèle XGBoost et de sauvegarder un graphique 
     avec l'importance des variables et une courbe d'apprentissage.
@@ -567,22 +518,18 @@ def train_model_xgboost(X_train: pd.DataFrame,
     Args:
     - X_train (pd.DataFrame): Données d'entrée d'entraînement.
     - y_train (pd.Series): Données de sortie d'entraînement.
-    - X_test (pd.DataFrame): Données d'entrée de test.
-    - y_test (pd.series): Données de sortie de test.
     - param_grid (dict): Dictionnaire avec les différents hyperparamètres à tester.
     - cv (int): Un entier pour choisir le nombre de pli pour la validation croisée.
 
     Return:
     - model (BaseEstimator): Modèle entraîné.
     - best_params (dict): Dictionnaire avec les meilleurs hyperparamètres.
-    - image_path_feature (str): Chemin de l'image d'importance des variables.
-    - image_path_learning (str): Chemin de l'image de la courbe d'apprentissage.
 
     Remarque :
     - Le modèle est entraîné avec GridSearchCV en utilisant XGBRegressor(),
     param_grid et le nombre de plis cv.
     - Les meilleurs paramètres du modèle sont établis en fonction de la métrique r2_score.
-    - Le modèle est ré-entraîné avec les meilleurs paramètres.
+    - Le modèle est celui avec les meilleur paramètres.
     """
     print("Entraînement en cours ...")
     
@@ -601,13 +548,39 @@ def train_model_xgboost(X_train: pd.DataFrame,
 
     # Affichage des différents résultats
     results = pd.DataFrame(grid_search.cv_results_)
+    results = results.sort_values(by='rank_test_r2')
     display(results.head())
     best_params = grid_search.best_params_
 
-    # Entraînement des données avec les meilleurs paramètres
-    print("Ré-entraînement avec les meilleurs hyperparamètres en cours...")
-    model = XGBRegressor(**best_params)
-    model.fit(X_train, y_train)
+    model = grid_search.best_estimator_
+    return model, best_params
+
+    
+#//////////////////////////////////////////////////////////////////////////////
+#             Graphiques pour visualiser les données d'entraînement
+#//////////////////////////////////////////////////////////////////////////////
+def plot_validation_learning_curve(model : BaseEstimator,
+                        X_train : pd.DataFrame,
+                        y_train : pd.Series) -> list:
+    """
+    Fonction permettant le tracé et l'enregistrement en local de la courbe d'apprentissage, 
+    la learning curve ainsi que les futures importances avec la mae et le r2 score.
+
+    Args:
+    - model (BaseEstimator) : Modèle avec les meilleurs hyperparamètres.
+    - X (pd.DataFrame) : Données d'entrée d'entraînement.
+    - y (pd.Series) : Données de sortie d'entraînement.
+
+    Return:
+    - images (list) : Chemin vers l'image stockée en local.
+
+    Remarque:
+    - La fonction permet d'afficher la courbe d'apprentissage et d'enregistrer
+    l'image en local.
+    """
+    print("Graphique en cours...")
+
+    images =[]
 
     # Affichage de l'importance des variables et de la courbe d'apprentissage
     # et sauvegarde des graphiques
@@ -625,9 +598,8 @@ def train_model_xgboost(X_train: pd.DataFrame,
     plt.xlabel("Variables")
     plt.ylabel("Importance")
     plt.tight_layout()
-    
-    # Enregistrer l'image localement
     image_path_feature = "./images/feature_importance.png"
+    images.append(image_path_feature)
     plt.savefig(image_path_feature)
     plt.show()
 
@@ -658,86 +630,47 @@ def train_model_xgboost(X_train: pd.DataFrame,
     plt.title("Courbe d'apprentissage")
     plt.legend(loc="best")
     image_path_learning = "./images/feature_learning.png"
+    images.append(image_path_learning)
     plt.savefig(image_path_learning)
     plt.show()
 
-    print("Entraînement OK")
-    return model, best_params, image_path_feature, image_path_learning
 
-    
-#//////////////////////////////////////////////////////////////////////////////
-#             Graphiques pour visualiser les données d'entraînement
-#//////////////////////////////////////////////////////////////////////////////
-def plot_validation_curve(model : BaseEstimator,
-                        type_de_bien : str ,
-                        X : pd.DataFrame,
-                        y : pd.Series) -> str:
-    """
-    Fonction permettant le tracé et l'enregistrement en local de la courbe d'apprentissage
-    avec la mae et le r2 score sur les données d'entraînement et de test.
+    # Courbe de validation
+    param_range = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    train_scores, test_scores = validation_curve(model, X_train, y_train,
+                         param_name='n_estimators', 
+                         param_range=param_range,
+                         cv = 3,
+                         scoring='r2')
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
 
-    Args:
-    - model (BaseEstimator) : Modèle avec les meilleurs hyperparamètres.
-    - type_de_bien (str) : Informations sur les données entraînées.
-    - X (pd.DataFrame) : Données d'entrée d'entraînement.
-    - y (pd.Series) : Données de sortie d'entraînement.
-
-    Return:
-    - image_path (str) : Chemin vers l'image stockée en local.
-
-    Remarque:
-    - La fonction permet d'afficher la courbe d'apprentissage et d'enregistrer
-    l'image en local.
-    """
-    print("Tracé du graphique en cours...")
-    train_sizes=[i / 10.0 for i in range(1, 11)]
-    train_sizes[-1]=0.99
-    train_r2 = []
-    validation_r2 = []
-    train_mae = []
-    validation_mae = []
-
-    # Définition d'un ensemble d'entraînement et de validation
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    iteration=1
-    for size in train_sizes:
-        X_train_subset, _, y_train_subset, _ = train_test_split(X_train, y_train, train_size=size, random_state=42)
-        model.fit(X_train_subset, y_train_subset)
-        y_pred_train=model.predict(X_train_subset)
-        y_pred_test=model.predict(X_val)
-        train_r2.append(r2_score(y_train_subset, y_pred_train))
-        validation_r2.append(r2_score(y_val, y_pred_test))
-        train_mae.append(mean_absolute_error(y_train_subset, y_pred_train))
-        validation_mae.append(mean_absolute_error(y_val, y_pred_test))
-        print(f"Itération N°{iteration} : train score = {train_r2[-1]} -- validation score = {validation_r2[-1]}")
-        iteration+=1
-
-    plt.figure(figsize=(12, 6))
-    # R2
-    plt.subplot(1, 3, 1)
-    plt.plot(train_sizes, train_r2, '--', color="r", label="Score d'entraînement")
-    plt.plot(train_sizes, validation_r2, '-', color="g", label="Score de validation")
-    plt.title('Training and Validation r2_score')
-    plt.xlabel("Taille de l'échantillon")
-    plt.ylabel('r2_score')
-    plt.legend()
-
-    # MAE
-    plt.subplot(1, 3, 2)
-    plt.plot(train_sizes, train_mae, '--', color="r", label="Score d'entraînement")
-    plt.plot(train_sizes, validation_mae, '-', color="g", label="Score de validation")
-    plt.title('Training and Validation MAE')
-    plt.xlabel("Taille de l'échantillon")
-    plt.ylabel('MAE')
-    plt.legend()
-
-    plt.tight_layout()
-    # Enregistrer l'image localement
-    image_path = f"./images/validation_curve.png"
-    plt.savefig(image_path)
+    plt.rcParams["font.size"] = 12
+    plt.title("Validation Curve (R2)", fontsize = 20)
+    plt.xlabel("n_estimators", fontsize =14)
+    plt.ylabel("Score", fontsize = 14)
+    plt.ylim(0.5, 0.9)
+    lw = 2
+    plt.plot(param_range, train_scores_mean, label="Training score",
+             color="darkorange", lw=lw)
+    plt.fill_between(param_range, train_scores_mean - train_scores_std,
+                     train_scores_mean + train_scores_std, alpha=0.2,
+                     color="darkorange", lw=lw)
+    plt.plot(param_range, test_scores_mean, label="Cross-validation score",
+             color="navy", lw=lw)
+    plt.fill_between(param_range, test_scores_mean - test_scores_std,
+                     test_scores_mean + test_scores_std, alpha=0.2,
+                     color="navy", lw=lw)
+    plt.rcParams["font.size"] = 10
+    plt.legend(loc="best")
+    image_path_validation = "./images/feature_validation.png"
+    images.append(image_path_validation )
+    plt.savefig(image_path_validation)
     plt.show()
-    return image_path
+    print("Entraînement OK")
+    return images
 
 #//////////////////////////////////////////////////////////////////////////////
 #                                    MLFlow
