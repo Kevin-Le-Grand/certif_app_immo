@@ -46,7 +46,8 @@ def main():
             st.title("Page sur les statistiques du département à venir...")
         # Affichage des statistiques sur la région
         elif st.session_state.region!="Sélectionnez une région":
-            st.title("Page sur les statistiques de la région à venir...")
+            stat_region(st.session_state.region)
+            
         # Affichage de la page d'accueil
         else:
             st.title("Page d'accueil en construction...")
