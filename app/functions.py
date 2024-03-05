@@ -342,13 +342,13 @@ def log_grafana() -> None:
                     commune=st.session_state.commune,
                     user=st.session_state.username,
                     pred=st.session_state.pred)
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" ,
-          st.session_state.type_de_bien,
-          st.session_state.region,
-          st.session_state.departement,
-          st.session_state.commune,
-          st.session_state.username,
-          st.session_state.pred)
+    st.write(f"""Données envoyés dans la bdd kpis :  ,
+           - type de bien : {st.session_state.type_de_bien},
+           - Région : {st.session_state.region},
+           - Département : {st.session_state.departement},
+           - Commune : {st.session_state.commune},
+           - Utilisateur : {st.session_state.username},
+           - Prédictions : {st.session_state.pred}""")
     return
 
 #//////////////////////////////////////////////////////////////////////////////
