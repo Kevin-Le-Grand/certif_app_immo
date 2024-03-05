@@ -4,7 +4,7 @@ import pymysql
 import os
 from datetime import date
 # from dotenv import load_dotenv
-from sqlalchemy import create_engine, Date, String, Text
+from sqlalchemy import create_engine, Date, String, Text,Float
 from config_bdd import DataBaseV2
 
 
@@ -53,7 +53,9 @@ database.create_table('kpis',date_pred=Date,
                       type_de_bien=String, 
                       region=String,
                       departement=String,
-                      commune=String)
+                      commune=String,
+                      user=String,
+                      pred=Float)
 
 database.create_table('crash',date_crash=Date, 
                       infos = Text)
@@ -334,14 +336,14 @@ def log_grafana() -> None:
 
     Cette fonction ne produit aucune sortie dans l'application.
     """
-    database.add_row("kpis",
-                     date_pred=date.today(),
+    database.add_row("kpis", date_pred=date.today(),
                     type_de_bien=f"{st.session_state.type_de_bien}",
                     region=f"{st.session_state.region}",
                     departement=f"{st.session_state.departement}",
                     commune=f"{st.session_state.commune}",
                     user=f"{st.session_state.username}",
-                    pred=st.session_state.pred)
+                    pred=float(st.session_state.pred))
+    st.write("Les données statistiques ont bien été envoyées.")
     return
 
 #//////////////////////////////////////////////////////////////////////////////
