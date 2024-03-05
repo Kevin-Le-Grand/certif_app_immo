@@ -341,7 +341,7 @@ def log_grafana() -> None:
                     departement=st.session_state.departement,
                     commune=st.session_state.commune,
                     user=st.session_state.username,
-                    pred=st.session_state.pred)
+                    pred=int(st.session_state.pred))
     return
 
 #//////////////////////////////////////////////////////////////////////////////
