@@ -40,10 +40,10 @@ def main():
             log_grafana()
         # Affichage des statistiques sur la commune :
         elif st.session_state.commune!="Sélectionnez une commune":
-            st.title("Page sur les statistiques de la commune à venir...")
+            stat_commune(st.session_state.commune)
         # Affichage des statistiques sur le département :
         elif st.session_state.departement!="Sélectionnez un département":
-            st.title("Page sur les statistiques du département à venir...")
+            stat_departement(st.session_state_departement)
         # Affichage des statistiques sur la région
         elif st.session_state.region!="Sélectionnez une région":
             stat_region(st.session_state.region)

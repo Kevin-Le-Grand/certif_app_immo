@@ -228,22 +228,6 @@ def formulaire(cursor):
         st.write("Veuillez choisir une région")
     return
 
-#//////////////////////////////////////////////////////////////////////////////
-# Affichage des pages en fonctions de l'avancement du remplissage du formulaire
-#//////////////////////////////////////////////////////////////////////////////
-def formulaire_valide(cursor):
-    # Appel de l'API
-    prediction = api_predict({'SURFACE_BATI' :st.session_state.surface_bati,
-                            'NB_PIECES' : st.session_state.nb_pieces,
-                            'NAME_TYPE_BIEN':st.session_state.type_de_bien,
-                            'Name_region' : st.session_state.region})
-    # Affichage de la prédiction
-    st.title(f"Le bien est estimé à {int(prediction['reponse'])} €")
-
-    # Affichage des ventes réalisées dans la commune
-    st.components.v1.html(affichage_ventes_proximite([st.session_state.region,
-                                                    st.session_state.departement,
-                                                    st.session_state.commune],cursor), height=500)
 
 #//////////////////////////////////////////////////////////////////////////////
 #                          Création de la carte interactive
@@ -254,7 +238,7 @@ def affichage_ventes_proximite(commune : list, cursor) -> str:
     à l'aide de Folium
 
     Args :
-    - commune (list) : Liste de type ['Normandie','Calvados','Caen']
+    - commune (list) : Liste de type ['Normandie','Calvados','Caen','Maison']
     - cursor: Connexion à la base de données
 
     Returns:
@@ -273,9 +257,10 @@ def affichage_ventes_proximite(commune : list, cursor) -> str:
     JOIN TYPES_BIENS t ON t.ID_TYPE_BIEN=v.ID_TYPE_BIEN
     WHERE c.NAME_COMMUNE = %s
         AND d.Name_departement = %s
-        AND r.Name_region = %s;
+        AND r.Name_region = %s
+        AND NAME_TYPE_BIEN = %s ;
     """
-    cursor.execute(query,(commune[2],commune[1],commune[0]))
+    cursor.execute(query,(commune[2],commune[1],commune[0],commune[3]))
     result = cursor.fetchall()
     # Transformation de la requête en data frame
     df = pd.DataFrame(result)
