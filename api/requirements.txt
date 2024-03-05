@@ -10,3 +10,4 @@ scikit-learn==1.3.2
 uvicorn==0.24.0.post1
 httpx
 pytest
+xgboost==2.0.3 
