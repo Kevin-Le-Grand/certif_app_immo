@@ -12,7 +12,7 @@ def accueil():
     # Affichage de la période d'entraînement du modèle
     query=f"""SELECT MAX(DATE_MUTATION) - INTERVAL 15 MONTH AS DATE_MUTATION FROM VENTES;"""
     df = pd.read_sql(con=engine.connect(), sql=text(query))
-    date_plus_recente = str(df['DATE_MUTATION'].min()).split("")[0]
+    date_plus_recente = str(df['DATE_MUTATION'].min())
     st.write(f"Le modèle a été entraîné sur une période de 12 à partir du {date_plus_recente}")
     st.write("Il est possible que votre commune ne figure pas dans la liste pour les raisons suivantes :")
     st.write("  - N'ont été retenues que les communes ayant eu plus de 10 ventes sur la période d'entraînement")
@@ -29,7 +29,7 @@ def stat_region(region : str) ->None:
     st.title("Page sur les statistiques en cours de construction...")
     st.subheader(f"Statistiques sur la région {region} :")
     for i in ["Maison","Appartement"]:
-        query=f"""SELECT ROUND(AVG(MONTANT)/AVG(SURFACE_BATI) m2 FROM VENTES V
+        query=f"""SELECT AVG(MONTANT)/AVG(SURFACE_BATI) m2 FROM VENTES V
                     INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
                     INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
                     INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
