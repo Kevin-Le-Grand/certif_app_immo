@@ -336,12 +336,12 @@ def log_grafana() -> None:
     """
     database.add_row("kpis",
                      date_pred=date.today(),
-                    type_de_bien=st.session_state.type_de_bien,
-                    region=st.session_state.region,
-                    departement=st.session_state.departement,
-                    commune=st.session_state.commune,
-                    user=st.session_state.username,
-                    pred=int(st.session_state.pred))
+                    type_de_bien=f"{st.session_state.type_de_bien}",
+                    region=f"{st.session_state.region}",
+                    departement=f"{st.session_state.departement}",
+                    commune=f"{st.session_state.commune}",
+                    user=f"{st.session_state.username}",
+                    pred=st.session_state.pred)
     return
 
 #//////////////////////////////////////////////////////////////////////////////
