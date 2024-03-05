@@ -6,10 +6,9 @@ from api import functions
 # Config apparence API
 descritpion ="""
     Obtenez une prédiction de la valeur d'un bien grâce aux éléments suivants :
-    - La région dans lequel ce situe le bien
-    - La surface
-    - Le nombre de pièces 
-    - En choisissant le type de bien (Maison ou appartement)
+    - La surface d'un bien
+    - La surface du terrain
+    - Le prix au m2 de la commune
     """
 app = FastAPI(
     title="API prédictions d'un bien immobilier",

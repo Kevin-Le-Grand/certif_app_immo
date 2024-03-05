@@ -53,18 +53,17 @@ import os
 # Récupération du modèle sur MlFlow
 
 mlflow.set_tracking_uri('https://mlflowimmoappkevleg-737621d410d0.herokuapp.com/') 
-logged_model = 'runs:/eb04a2a765c04cb6bb2af1582b78e532/ImmoApp'
+logged_model = 'runs:/4b787850c21f4f338e4dc75c66e65cfc/ImmoApp'
 model = mlflow.sklearn.load_model(logged_model)
 
-encoders = joblib.load(mlflow.artifacts.download_artifacts("mlflow-artifacts:/2/eb04a2a765c04cb6bb2af1582b78e532/artifacts/encoders.joblib"))
-scalers = joblib.load(mlflow.artifacts.download_artifacts("mlflow-artifacts:/2/eb04a2a765c04cb6bb2af1582b78e532/artifacts/scalers.joblib"))
+# encoders = joblib.load(mlflow.artifacts.download_artifacts("mlflow-artifacts:/2/eb04a2a765c04cb6bb2af1582b78e532/artifacts/encoders.joblib"))
+scalers = joblib.load(mlflow.artifacts.download_artifacts("mlflow-artifacts:/12/4b787850c21f4f338e4dc75c66e65cfc/artifacts/scalers.joblib"))
 
 
 class Config_donnees(BaseModel):
     SURFACE_BATI : int
-    NB_PIECES : int
-    NAME_TYPE_BIEN: str
-    Name_region: str
+    SURFACE_TERRAIN : int
+    prix_moyen_commune_m2: float
 
 class reponse_model(BaseModel):
     reponse: float
@@ -81,17 +80,17 @@ def encod_scal(n:dict) ->list:
     """
     transformed_data=[]
     transformed_data.append(scalers['SURFACE_BATI'].transform(np.array([n.SURFACE_BATI]).reshape(-1, 1))[0][0])
-    transformed_data.append(scalers['NB_PIECES'].transform(np.array([n.NB_PIECES]).reshape(-1, 1))[0][0])
-    type_bien = encoders['NAME_TYPE_BIEN'].transform([n.NAME_TYPE_BIEN])[0] 
-    transformed_data.append(scalers['NAME_TYPE_BIEN'].transform(np.array([type_bien]).reshape(-1, 1))[0][0])
-    region = encoders['Name_region'].transform([n.Name_region])[0] 
-    transformed_data.append(scalers['Name_region'].transform(np.array([region]).reshape(-1,1))[0][0])
+    transformed_data.append(scalers['SURFACE_TERRAIN'].transform(np.array([n.SURFACE_TERRAIN]).reshape(-1, 1))[0][0])
+    transformed_data.append(scalers['prix_moyen_commune_m2'].transform(np.array([n.prix_moyen_commune_m2]).reshape(-1, 1))[0][0])
+    # type_bien = encoders['NAME_TYPE_BIEN'].transform([n.NAME_TYPE_BIEN])[0] 
+    # transformed_data.append(scalers['NAME_TYPE_BIEN'].transform(np.array([type_bien]).reshape(-1, 1))[0][0])
+    
     return transformed_data
 
 def predictions(data:list) -> dict:
     """
     Fonction permettant la prédiction 
-    Sortie de type : {'reponse': 250000]}
+    Sortie de type : {'reponse': 250000.00]}
     """
     # Prédiction en utilisant le modèle
     data = np.array([data])

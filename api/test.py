@@ -5,10 +5,10 @@ import boto3
 
 class TestAPI(unittest.TestCase):
     client = TestClient(app)
-    data={'SURFACE_BATI': 123, 
-          'NB_PIECES': 3,
-        'NAME_TYPE_BIEN': "Maison", 
-        'Name_region': "Normandie"}
+    data={'SURFACE_BATI': 125, 
+          'SURFACE_TERRAIN': 500,
+        'prix_moyen_commune_m2': 1500.0, 
+        }
     
     def test_reponse(self):
         """
