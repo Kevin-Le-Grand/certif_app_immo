@@ -90,13 +90,24 @@ def stat_commune(commune : str ) ->None:
 # Affichage des pages en fonctions de l'avancement du remplissage du formulaire
 #//////////////////////////////////////////////////////////////////////////////
 def formulaire_valide(cursor):
+    # Recherche du prix au m2 de la commune
+    query=f"""SELECT prix_m2 FROM COMMUNES C
+                    INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
+                    INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION
+                    WHERE NAME_COMMUNE='{st.session_state.commune}' 
+                        AND Name_region='{st.session_state.region}'
+                        AND NAME_COMMUNE='{st.session_state.commune}';"""
+    df = pd.read_sql(con=engine.connect(), sql=text(query))
+    st.session_state.prix_m2 = int(df.iloc[0,0])
+
     # Appel de l'API
     prediction = api_predict({'SURFACE_BATI' :st.session_state.surface_bati,
-                            'NB_PIECES' : st.session_state.nb_pieces,
-                            'NAME_TYPE_BIEN':st.session_state.type_de_bien,
-                            'Name_region' : st.session_state.region})
+                            'SURFACE_TERRAIN' :st.session_state.surface_terrain,
+                            'prix_moyen_commune_m2': st.session_state.prix_m2})
+    
+    st.session_state.pred=int(prediction['reponse'])
     # Affichage de la prédiction
-    st.title(f"Le bien est estimé à {int(prediction['reponse'])} €")
+    st.title(f"Le bien est estimé à {st.session_state.pred} €")
 
     st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
 

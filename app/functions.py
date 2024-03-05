@@ -339,7 +339,9 @@ def log_grafana() -> None:
                     type_de_bien=st.session_state.type_de_bien,
                     region=st.session_state.region,
                     departement=st.session_state.departement,
-                    commune=st.session_state.commune)
+                    commune=st.session_state.commune,
+                    user=st.session_state.username,
+                    pred=st.session_state.pred)
     return
 
 #//////////////////////////////////////////////////////////////////////////////
