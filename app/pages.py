@@ -79,7 +79,7 @@ def stat_commune(commune : str ) ->None:
                     INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
                     INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
                     WHERE NAME_TYPE_BIEN='{i}' 
-                        AND Name_departement='{commune}';"""
+                        AND NAME_COMMUNE='{commune}';"""
         df = pd.read_sql(con=engine.connect(), sql=text(query))
         if i =="Maison" :
             st.write(f"Le prix moyen au m² pour une maison est de : {int(df.iloc[0,0])} €")
