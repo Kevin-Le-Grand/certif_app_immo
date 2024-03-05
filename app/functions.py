@@ -4,7 +4,7 @@ import pymysql
 import os
 from datetime import date
 # from dotenv import load_dotenv
-from sqlalchemy import create_engine, Date, String, Text,Float
+from sqlalchemy import create_engine, Date, String, Text,Float,Integer
 from config_bdd import DataBaseV2
 
 
@@ -54,6 +54,9 @@ database.create_table('kpis',date_pred=Date,
                       region=String,
                       departement=String,
                       commune=String,
+                      surface_bati=Float,
+                      surface_terrain=Float,
+                      nb_piece=Integer,
                       user=String,
                       pred=Float)
 
@@ -341,6 +344,9 @@ def log_grafana() -> None:
                     region=f"{st.session_state.region}",
                     departement=f"{st.session_state.departement}",
                     commune=f"{st.session_state.commune}",
+                    surface_bati=f"{st.session_state.surface_bati}",
+                    surface_terrain=f"{st.session_state.surface_terrain}",
+                    nb_piece=f"{st.session_state.nb_pieces}",
                     user=f"{st.session_state.username}",
                     pred=float(st.session_state.pred))
     st.write("Les données statistiques ont bien été envoyées.")
