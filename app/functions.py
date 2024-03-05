@@ -334,7 +334,7 @@ def log_grafana() -> None:
 
     Cette fonction ne produit aucune sortie dans l'application.
     """
-    database.add_row('kpis',
+    database.add_row("kpis",
                      date_pred=date.today(),
                     type_de_bien=st.session_state.type_de_bien,
                     region=st.session_state.region,
@@ -342,13 +342,6 @@ def log_grafana() -> None:
                     commune=st.session_state.commune,
                     user=st.session_state.username,
                     pred=st.session_state.pred)
-    st.write(f"""Données envoyés dans la bdd kpis :  ,
-           - type de bien : {st.session_state.type_de_bien},
-           - Région : {st.session_state.region},
-           - Département : {st.session_state.departement},
-           - Commune : {st.session_state.commune},
-           - Utilisateur : {st.session_state.username},
-           - Prédictions : {st.session_state.pred}""")
     return
 
 #//////////////////////////////////////////////////////////////////////////////
