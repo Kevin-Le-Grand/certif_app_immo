@@ -1,6 +1,7 @@
 import sqlalchemy as db
 import pandas as pd
 from sqlalchemy import text
+import sqlalchemy.types as types
 
 
 class DataBaseV2():
@@ -115,3 +116,20 @@ class DataBaseV2():
             print(f'Row with id {id_} updated')
         except:
             print(f'Error: Column with id {id_} not found')
+
+    def add_column(self, table_name, column_name, column_type_str):
+        try:
+            inspector = db.inspect(self.engine)
+            columns = inspector.get_columns(table_name)
+
+            # Vérification que la colonne n'existe pas déjà dans la table
+            if column_name not in [column['name'] for column in columns]:
+                self.connection.execute(text(f'ALTER TABLE "{table_name}" ADD COLUMN "{column_name}" {column_type_str};'))
+                self.connection.commit()
+                print("Colonne créée avec succès.")
+            else:
+                print("La colonne existe déjà dans la table.")
+
+        except Exception as e:
+            print(f"Erreur : {e}")
+            print("Échec de la création de la nouvelle colonne.")
