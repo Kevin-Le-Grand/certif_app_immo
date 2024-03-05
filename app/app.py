@@ -43,7 +43,7 @@ def main():
             stat_commune(st.session_state.commune)
         # Affichage des statistiques sur le département :
         elif st.session_state.departement!="Sélectionnez un département":
-            stat_departement(st.session_state_departement)
+            stat_departement(st.session_state.departement)
         # Affichage des statistiques sur la région
         elif st.session_state.region!="Sélectionnez une région":
             stat_region(st.session_state.region)
