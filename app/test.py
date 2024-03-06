@@ -23,12 +23,20 @@ class TestAPICalls(unittest.TestCase):
 
     def test_api_predict_success(self):
         # Appel de la fonction de l'API avec des données factices
-        data = {'SURFACE_BATI' :250,
-                'NB_PIECES' : 5,
-                'NAME_TYPE_BIEN': "Maison",
-                'Name_region' : "Normandie"}
+        data = {"SURFACE_BATI": 150,
+                "SURFACE_TERRAIN": 750,
+                "prix_moyen_commune_m2": 1356}
         result = api_predict(data)
-        self.assertEqual(dict,type(result.json()))
+        json_data = result.json()
+
+        # Vérifier si le résultat est un dictionnaire
+        self.assertEqual(dict, type(json_data))
+
+        # Vérifier si la clé 'reponse' est présente dans le JSON
+        self.assertIn('reponse', json_data)
+
+        # Vérifier si la valeur de la clé 'reponse' est de type float
+        self.assertIsInstance(json_data['reponse'], float)
 
 if __name__ == '__main__':
     unittest.main()
