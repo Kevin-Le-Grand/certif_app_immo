@@ -49,19 +49,19 @@ database = DataBaseV2(
     db_url=f"{os.environ['URL_POSTGRE']}"
 )
 
-database.create_table('kpis',date_pred=Date, 
-                      type_de_bien=String, 
-                      region=String,
-                      departement=String,
-                      commune=String,
-                      surface_bati=Float,
-                      surface_terrain=Float,
-                      nb_piece=Integer,
-                      user=String,
-                      pred=Float)
+# database.create_table('kpis',date_pred=Date, 
+#                       type_de_bien=String, 
+#                       region=String,
+#                       departement=String,
+#                       commune=String,
+#                       surface_bati=Float,
+#                       surface_terrain=Float,
+#                       nb_piece=Integer,
+#                       user=String,
+#                       pred=Float)
 
-database.create_table('crash',date_crash=Date, 
-                      infos = Text)
+# database.create_table('crash',date_crash=Date, 
+#                       infos = Text)
 
 
 #//////////////////////////////////////////////////////////////////////////////
