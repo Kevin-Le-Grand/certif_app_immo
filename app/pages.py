@@ -114,10 +114,6 @@ def formulaire_valide(cursor):
     else :
         st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour un appartement sont :")
 
-    # Configuration des options d'affichage
-    pd.set_option('display.max_columns', None)  
-    pd.set_option('display.float_format', 
-                  lambda x: '{:,.0f}'.format(x).replace(',', ' '))
     query=f"""SELECT 
                     AVG(prix_m2) m2avg,
                     MIN(prix_m2) m2min,
@@ -142,8 +138,15 @@ def formulaire_valide(cursor):
                             'avgM': 'Montant moyen',
                             'minM': 'Montant minimum',
                             'maxM': 'Montant maximum'})
+    
+    # Formatage des colonnes du dataframe
+    df = df.astype(int)
+    df = df.astype(str)
 
-    st.dataframe(df)
+    # Remplacement des virgules par un espace et ajout du symbole "€"
+    df = df.applymap(lambda x: x.replace(',', ' ').strip() + ' €')
+
+    st.dataframe(df,hide_index=True)
 
     st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
 
