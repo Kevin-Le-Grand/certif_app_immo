@@ -510,10 +510,9 @@ def train_tensor_flow(X_train,y_train,X_test,y_test):
 def train_model_xgboost(X_train: pd.DataFrame, 
                         y_train: pd.Series, 
                         param_grid: Dict, 
-                        cv: int) -> Tuple[BaseEstimator, Dict, str, str, str]:
+                        cv: int) -> Tuple[BaseEstimator, Dict]:
     """
-    Fonction permettant d'entraîner un modèle XGBoost et de sauvegarder un graphique 
-    avec l'importance des variables et une courbe d'apprentissage.
+    Fonction permettant d'entraîner un modèle XGBoost.
 
     Args:
     - X_train (pd.DataFrame): Données d'entrée d'entraînement.
@@ -529,7 +528,7 @@ def train_model_xgboost(X_train: pd.DataFrame,
     - Le modèle est entraîné avec GridSearchCV en utilisant XGBRegressor(),
     param_grid et le nombre de plis cv.
     - Les meilleurs paramètres du modèle sont établis en fonction de la métrique r2_score.
-    - Le modèle est celui avec les meilleur paramètres.
+    - Le modèle est celui avec les meilleurs paramètres.
     """
     print("Entraînement en cours ...")
     
