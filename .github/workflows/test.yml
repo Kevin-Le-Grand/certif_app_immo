@@ -6,13 +6,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DB_HOST: ${{ Secrets.GITHUB_TOKEN.DB_HOST}}
-      DB_USER: ${{ secrets.GITHUB_TOKEN.DB_USER }}
-      DB_PASSWORD: ${{ secrets.GITHUB_TOKEN.DB_PASSWORD }}
-      DB_PORT: ${{ secrets.GITHUB_TOKEN.DB_PORT }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.GITHUB_TOKEN.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.GITHUB_TOKEN.AWS_SECRET_ACCESS_KEY }}
-      URL_POSTGRE: ${{ secrets.GITHUB_TOKEN.URL_POSTGRE}}
+      DB_HOST: ${{ Secrets.DB_HOST}}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      URL_POSTGRE: ${{ secrets.URL_POSTGRE}}
 
     steps:
     - name: Checkout code
