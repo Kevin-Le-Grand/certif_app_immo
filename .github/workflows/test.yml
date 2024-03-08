@@ -12,6 +12,7 @@ jobs:
       DB_PORT: ${{ secrets.GITHUB_TOKEN.DB_PORT }}
       AWS_ACCESS_KEY_ID: ${{ secrets.GITHUB_TOKEN.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GITHUB_TOKEN.AWS_SECRET_ACCESS_KEY }}
+      URL_POSTGRE: ${{ secrets.GITHUB_TOKEN.URL_POSTGRE}}
 
     steps:
     - name: Checkout code
