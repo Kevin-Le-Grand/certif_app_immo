@@ -119,7 +119,7 @@ def formulaire_valide(cursor):
                     MAX(prix_m2) m2max,
                     AVG(MONTANT) avgM,
                     MIN(MONTANT) minM,
-                    MAX(MONTANT) maxM,
+                    MAX(MONTANT) maxM
                 FROM VENTES V
                 INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
                 INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
@@ -127,7 +127,7 @@ def formulaire_valide(cursor):
                 INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION
                 WHERE NAME_TYPE_BIEN='{st.session_state.type_de_bien}' 
                     AND Name_region='{st.session_state.region}'
-                    AND Name_departement='{st.session_state.departement}
+                    AND Name_departement='{st.session_state.departement}'
                     AND NAME_COMMUNE='{st.session_state.commune}';"""
     df = pd.read_sql(con=engine.connect(), sql=text(query))
     #Affichage du dataframe
