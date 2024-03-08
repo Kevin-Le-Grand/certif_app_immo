@@ -109,6 +109,36 @@ def formulaire_valide(cursor):
     # Affichage de la prédiction
     st.title(f"Le bien est estimé à {st.session_state.pred} €")
 
+    if st.session_state.type_de_bien == "Maison":
+        st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour une maison sont :")
+    else :
+        st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour un appartement sont :")
+    query=f"""SELECT 
+                    AVG(prix_m2) m2avg,
+                    MIN(prix_m2) m2min,
+                    MAX(prix_m2) m2max,
+                    AVG(MONTANT) avgM,
+                    MIN(MONTANT) minM,
+                    MAX(MONTANT) maxM,
+                FROM VENTES V
+                INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
+                INNER JOIN COMMUNES AS C ON V.ID_COMMUNE = C.ID_COMMUNE
+                INNER JOIN DEPARTEMENTS AS D ON C.ID_DEPT = D.ID_DEPT
+                INNER JOIN REGIONS R ON D.ID_REGION = R.ID_REGION
+                WHERE NAME_TYPE_BIEN='{st.session_state.type_de_bien}' 
+                    AND Name_region='{st.session_state.region}'
+                    AND Name_departement='{st.session_state.departement}
+                    AND NAME_COMMUNE='{st.session_state.commune}';"""
+    df = pd.read_sql(con=engine.connect(), sql=text(query))
+    #Affichage du dataframe
+    df = df.rename(columns={'m2avg': 'Prix moyen du m²',
+                            'm2min': 'Prix minimum du m²',
+                            'm2max': 'Prix maximum du m²',
+                            'avgM': 'Montant moyen',
+                            'minM': 'Montant minimum',
+                            'maxM': 'Montant maximum'})
+    st.dataframe(df)
+
     st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
 
     # Affichage des ventes réalisées dans la commune
