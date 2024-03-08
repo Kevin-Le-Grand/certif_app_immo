@@ -113,6 +113,11 @@ def formulaire_valide(cursor):
         st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour une maison sont :")
     else :
         st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour un appartement sont :")
+
+    # Configuration des options d'affichage
+    pd.set_option('display.max_columns', None)  
+    pd.set_option('display.float_format', 
+                  lambda x: '{:,.0f}'.format(x).replace(',', ' '))
     query=f"""SELECT 
                     AVG(prix_m2) m2avg,
                     MIN(prix_m2) m2min,
@@ -137,12 +142,6 @@ def formulaire_valide(cursor):
                             'avgM': 'Montant moyen',
                             'minM': 'Montant minimum',
                             'maxM': 'Montant maximum'})
-    
-    # Option pour ne pas afficher les index
-    pd.set_option('display.max_columns', None)  
-
-    # Convertion en entier et remplacement de la virgule par un espace
-    pd.set_option('display.float_format', lambda x: '{:,.0f}'.format(x).replace(',', ' ')) # Pour formater les nombres avec un espace comme séparateur de milliers
 
     st.dataframe(df)
 
