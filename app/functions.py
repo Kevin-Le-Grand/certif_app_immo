@@ -381,7 +381,7 @@ def log_status_grafana(status : int) -> None:
     Cette fonction a pour but de visualiser les erreurs dans Grafana puis d'envoyer 
     un mail à l'aide de grafana aux développeurs.
     """
-    database.add_row('crash',
+    database.add_row('app_status',
                      date_status=datetime.now(),
                      status = status)
     return
