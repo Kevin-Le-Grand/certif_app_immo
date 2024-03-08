@@ -74,6 +74,8 @@ def stat_commune(commune : str ) ->None:
     """
     st.title("Page sur les statistiques de la commune en cours...")
     st.subheader(f"Statistiques sur la commune de {commune} :")
+
+    
     for i in ["Maison","Appartement"]:
         query=f"""SELECT AVG(MONTANT)/AVG(SURFACE_BATI) m2 FROM VENTES V
                     INNER JOIN TYPES_BIENS as T ON V.ID_TYPE_BIEN = T.ID_TYPE_BIEN
@@ -81,10 +83,19 @@ def stat_commune(commune : str ) ->None:
                     WHERE NAME_TYPE_BIEN='{i}' 
                         AND NAME_COMMUNE='{commune}';"""
         df = pd.read_sql(con=engine.connect(), sql=text(query))
-        if i =="Maison" :
-            st.write(f"Le prix moyen au m² pour une maison est de : {int(df.iloc[0,0])} €")
+        
+        # Vérification si le DataFrame est vide
+        if not df.empty:
+            # Affichage du moyen au m²
+            if i == "Maison":
+                st.write(f"Le prix moyen au m² pour une maison est de : {int(df.iloc[0,0])} €")
+            else :
+                st.write(f"Le prix moyen au m² pour un appartement est de : {int(df.iloc[0,0])} €")
         else :
-            st.write(f"Le prix moyen au m² pour un appartement est de : {int(df.iloc[0,0])} €")
+            if i == "Maison":
+                st.write("Aucune maison n'a été vendue dans cette commune.")
+            else:
+                st.write("Aucun appartement n'a été vendu dans cette commune.")
 
 #//////////////////////////////////////////////////////////////////////////////
 # Affichage des pages en fonctions de l'avancement du remplissage du formulaire
@@ -116,8 +127,6 @@ def formulaire_valide(cursor):
 
     query=f"""SELECT 
                     AVG(prix_m2) m2avg,
-                    MIN(prix_m2) m2min,
-                    MAX(prix_m2) m2max,
                     AVG(MONTANT) avgM,
                     MIN(MONTANT) minM,
                     MAX(MONTANT) maxM
@@ -133,8 +142,6 @@ def formulaire_valide(cursor):
     df = pd.read_sql(con=engine.connect(), sql=text(query))
     #Affichage du dataframe
     df = df.rename(columns={'m2avg': 'Prix moyen du m²',
-                            'm2min': 'Prix minimum du m²',
-                            'm2max': 'Prix maximum du m²',
                             'avgM': 'Montant moyen',
                             'minM': 'Montant minimum',
                             'maxM': 'Montant maximum'})
