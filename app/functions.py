@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import pymysql
 import os
-from datetime import date
+from datetime import date,datetime
 # from dotenv import load_dotenv
-from sqlalchemy import create_engine, Date, String, Text,Float,Integer
+from sqlalchemy import create_engine, Date, String, Text,Float,Integer, Boolean
 from config_bdd import DataBaseV2
 
 
@@ -48,20 +48,6 @@ database = DataBaseV2(
     db_type='postgresql',
     db_url=f"{os.environ['URL_POSTGRE']}"
 )
-
-# database.create_table('kpis',date_pred=Date, 
-#                       type_de_bien=String, 
-#                       region=String,
-#                       departement=String,
-#                       commune=String,
-#                       surface_bati=Float,
-#                       surface_terrain=Float,
-#                       nb_piece=Integer,
-#                       user=String,
-#                       pred=Float)
-
-# database.create_table('crash',date_crash=Date, 
-#                       infos = Text)
 
 
 #//////////////////////////////////////////////////////////////////////////////
@@ -374,4 +360,28 @@ def log_crash_grafana(texte : str) -> None:
     database.add_row('crash',
                      date_crash=date.today(),
                      infos = texte)
+    return
+
+
+#//////////////////////////////////////////////////////////////////////////////
+#                  enregistrement du status de l'application
+#//////////////////////////////////////////////////////////////////////////////
+def log_status_grafana(status : int) -> None:
+    """
+    Fonction permettant d'enregistrer un status de l'application dans Postgre.
+
+    Args:
+    - status (int) : 0 si une prédiction a réussie sinon 1
+
+    Returns:
+    - None
+
+    Remarque:  
+    
+    Cette fonction a pour but de visualiser les erreurs dans Grafana puis d'envoyer 
+    un mail à l'aide de grafana aux développeurs.
+    """
+    database.add_row('crash',
+                     date_status=datetime.now(),
+                     status = status)
     return

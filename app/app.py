@@ -36,8 +36,13 @@ def main():
         #----------------------------------------------------------------------------
         # Affichage de l'estimation
         if st.session_state.valid_formulaire:
+            # Affichage de la page estimation
             formulaire_valide(cursor)
+            # Enregistrement des données utilisateur et de la prédiction
             log_grafana()
+            # Enregistrement en base de données de l'état de l'application
+            log_status_grafana(0)
+            
         # Affichage des statistiques sur la commune :
         elif st.session_state.commune!="Sélectionnez une commune":
             stat_commune(st.session_state.commune)
@@ -88,3 +93,4 @@ if __name__ == "__main__":
     except Exception as e:
         st.header(f"Une erreur s'est produite : {e}")
         log_crash_grafana(f"{e}")
+        log_status_grafana(1)
