@@ -1,8 +1,6 @@
 name: Tests CI
 
-on: 
-  push:
-    branches: ['app']
+on: ['push']
 
 jobs:
   build:
