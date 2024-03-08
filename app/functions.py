@@ -193,7 +193,8 @@ def formulaire(cursor):
             FROM DEPARTEMENTS
             )AS B
             ON A.ID_DEPT=B.ID_DEPT
-            WHERE B.Name_departement='{st.session_state.departement}';
+            WHERE B.Name_departement='{st.session_state.departement}'
+                AND A.prix_m2 IS NOT NULL;
             """
             cursor.execute(query)
             resultats = cursor.fetchall()

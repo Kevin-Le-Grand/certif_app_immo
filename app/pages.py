@@ -137,6 +137,13 @@ def formulaire_valide(cursor):
                             'avgM': 'Montant moyen',
                             'minM': 'Montant minimum',
                             'maxM': 'Montant maximum'})
+    
+    # Option pour ne pas afficher les index
+    pd.set_option('display.max_columns', None)  
+
+    # Convertion en entier et remplacement de la virgule par un espace
+    pd.set_option('display.float_format', lambda x: '{:,.0f}'.format(x).replace(',', ' ')) # Pour formater les nombres avec un espace comme séparateur de milliers
+
     st.dataframe(df)
 
     st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
