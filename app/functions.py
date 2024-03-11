@@ -357,7 +357,7 @@ def log_grafana() -> None:
 
     Cette fonction ne produit aucune sortie dans l'application.
     """
-    database.add_row("kpis", date_pred=date.today(),
+    database.add_row("kpis", date_pred=datetime.now(),
                     type_de_bien=f"{st.session_state.type_de_bien}",
                     region=f"{st.session_state.region}",
                     departement=f"{st.session_state.departement}",
@@ -388,7 +388,7 @@ def log_crash_grafana(texte : str) -> None:
     un mail à l'aide de grafana aux développeurs.
     """
     database.add_row('crash',
-                     date_crash=date.today(),
+                     date_crash=datetime.now(),
                      infos = texte)
     return
 

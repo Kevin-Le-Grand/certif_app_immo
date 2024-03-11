@@ -1,4 +1,5 @@
 .venv
 push.sh
 bdd_granfan.ipynb
+config_bdd.py
 ../model/
