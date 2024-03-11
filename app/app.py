@@ -39,7 +39,7 @@ def main():
         if result[0] is not None :
             if int(result[0]) == 1:
                 st.sidebar.markdown("""
-                    <div style="display: flex; justify-content: center; position: fixed; bottom: 0;" >
+                    <div style="left: 50%; transform: translateX(-50%); position: fixed; bottom: 0;" >
                         <a href="https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63" target="_blank">
                             <button style="padding: 10px 20px;">Grafana</button>
                         </a>
