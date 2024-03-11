@@ -23,9 +23,10 @@ def main():
                             <img src="https://raw.githubusercontent.com/rastakoer/certif_app_immo/application/app/Logo.png" alt="Logo" width="200">
                             </div>""", unsafe_allow_html=True)
         
-        if st.button("Grafana"):
-            st.empty()
-            st.sidebar.markdown('<iframe src="https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63" width="100%" height="100%"></iframe>', unsafe_allow_html=True)
+        st.sidebar.markdown('<a href="https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63" target="_blank"><button>Grafana</button></a>', unsafe_allow_html=True)
+        # if st.sidebar.button("Grafana"):
+        #     st.empty()
+        #     st.markdown('<iframe src="https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63" width="100%" height="100%"></iframe>', unsafe_allow_html=True)
             
 
         # État du formulaire False => formulaire non validé
