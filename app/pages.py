@@ -140,20 +140,22 @@ def formulaire_valide(cursor):
                     AND Name_departement='{st.session_state.departement}'
                     AND NAME_COMMUNE='{st.session_state.commune}';"""
     df = pd.read_sql(con=engine.connect(), sql=text(query))
-    #Affichage du dataframe
-    df = df.rename(columns={'m2avg': 'Prix moyen du m²',
-                            'avgM': 'Montant moyen',
-                            'minM': 'Montant minimum',
-                            'maxM': 'Montant maximum'})
-    
-    # Formatage des colonnes du dataframe
-    df = df.astype(int)
-    df = df.astype(str)
 
-    # Remplacement des virgules par un espace et ajout du symbole "€"
-    df = df.applymap(lambda x: x.replace(',', ' ').strip() + ' €')
+    if df.iloc[0,0] != None :
+        #Affichage du dataframe
+        df = df.rename(columns={'m2avg': 'Prix moyen du m²',
+                                'avgM': 'Montant moyen',
+                                'minM': 'Montant minimum',
+                                'maxM': 'Montant maximum'})
+        
+        # Formatage des colonnes du dataframe
+        df = df.astype(int)
+        df = df.astype(str)
 
-    st.dataframe(df,hide_index=True)
+        # Remplacement des virgules par un espace et ajout du symbole "€"
+        df = df.applymap(lambda x: x.replace(',', ' ').strip() + ' €')
+
+        st.dataframe(df,hide_index=True)
 
     st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
 
