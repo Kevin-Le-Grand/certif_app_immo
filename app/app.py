@@ -36,7 +36,7 @@ def main():
         # + affichage d'un bouton permettant d'accéder à grafana
         cursor.execute(f"SELECT level FROM users WHERE username='{st.session_state.username}'")
         result = cursor.fetchone()
-        if result is not None :
+        if result[0] is not None :
             if int(result[0]) == 1:
                 st.sidebar.markdown("""
                     <div style="display: flex; justify-content: center; position: fixed; bottom: 0;" >
