@@ -19,6 +19,7 @@ class DataBaseV2():
         if db_type == 'mysql': self.url = f'{db_type}+pymysql://{db_user}:{db_password}@{db_host}:{str(db_port)}/{db_name}' if db_url is None else db_url
         if db_type == 'postgresql': self.url = f'{db_type}+psycopg2://{db_user}:{db_password}@{db_host}/{db_name}' if db_url is None else db_url
 
+        self.db_type = db_type
         self.db_name = db_name
         self.engine = db.create_engine(self.url)
         self.connection = self.engine.connect()
@@ -117,6 +118,22 @@ class DataBaseV2():
         except:
             print(f'Error: Column with id {id_} not found')
 
+    def update_row_by_element(self, 
+                              table, 
+                              column_selected, 
+                              value_selected,
+                              column_updated,
+                              update_value):
+        try:
+            with self.engine.connect() as conn:
+                conn.execute(db.text(f"""UPDATE {table}
+                                        SET {column_updated} = {update_value}
+                                        WHERE {column_selected} = '{value_selected}';"""))
+                conn.commit()
+                print("La mise à jour de la table a bien été effectuée")
+        except Exception as e:
+            print(f"Échec lors de la mise à jour de la table : {e}")
+
     def add_column(self, table_name, column_name, column_type_str):
         try:
             inspector = db.inspect(self.engine)
@@ -124,9 +141,14 @@ class DataBaseV2():
 
             # Vérification que la colonne n'existe pas déjà dans la table
             if column_name not in [column['name'] for column in columns]:
-                self.connection.execute(text(f'ALTER TABLE "{table_name}" ADD COLUMN "{column_name}" {column_type_str};'))
-                self.connection.commit()
-                print("Colonne créée avec succès.")
+                if self.db_type=="postgre":
+                    self.connection.execute(text(f'ALTER TABLE "{table_name}" ADD COLUMN "{column_name}" {column_type_str};'))
+                    self.connection.commit()
+                    print("Colonne créée avec succès.")
+                else:
+                    self.connection.execute(text(f'ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type_str};'))
+                    self.connection.commit()
+                    print("Colonne créée avec succès.")
             else:
                 print("La colonne existe déjà dans la table.")
 
