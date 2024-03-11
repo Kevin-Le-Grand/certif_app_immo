@@ -24,16 +24,22 @@ def main():
                             </div>""", unsafe_allow_html=True)
         
 
+        # Vérification que l'utilisateur a des droits 
+        # + affichage d'un bouton permettant d'accéder à grafana
         cursor.execute(f"SELECT level FROM users WHERE username='{st.session_state.username}'")
         result = cursor.fetchone()
-        if result:
-            st.markdown("""
+        if result and int(result[0]) == 1:
+            st.sidebar.markdown("""
                 <div style="display: flex; justify-content: center;">
                     <a href="https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63" target="_blank">
                         <button style="padding: 10px 20px;">Grafana</button>
                     </a>
                 </div>
                 """, unsafe_allow_html=True)
+            
+        # Bouton de déconnexion
+        if st.sidebar.button("Déconnexion", type="primary"):
+            st.session_state.username=None
         
         # État du formulaire False => formulaire non validé
         st.session_state.valid_formulaire=False
