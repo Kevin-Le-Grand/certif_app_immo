@@ -157,10 +157,13 @@ def formulaire_valide(cursor):
 
         st.dataframe(df,hide_index=True)
 
-    st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
+        st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
 
-    # Affichage des ventes réalisées dans la commune
-    st.components.v1.html(affichage_ventes_proximite([st.session_state.region,
-                                                    st.session_state.departement,
-                                                    st.session_state.commune,
-                                                    st.session_state.type_de_bien],cursor), height=500)
+        # Affichage des ventes réalisées dans la commune
+        st.components.v1.html(affichage_ventes_proximite([st.session_state.region,
+                                                        st.session_state.departement,
+                                                        st.session_state.commune,
+                                                        st.session_state.type_de_bien],cursor), height=500)
+    
+    else :
+         st.subheader("Aucune vente n'a été recensée selon vos critères de recherche")
