@@ -85,7 +85,7 @@ def stat_commune(commune : str ) ->None:
         df = pd.read_sql(con=engine.connect(), sql=text(query))
         
         # Vérification si le DataFrame est vide
-        if not df.empty:
+        if df.iloc[0,0] != None:
             # Affichage du moyen au m²
             if i == "Maison":
                 st.write(f"Le prix moyen au m² pour une maison est de : {int(df.iloc[0,0])} €")
