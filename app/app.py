@@ -84,7 +84,8 @@ if __name__ == "__main__":
                                 "datagouv")
         cursor = conn.cursor()
         # Créer la table utilisateur si elle n'existe pas déjà
-        create_user_table(conn,cursor)
+        # !!! Fonction commentée après avoir mis un utilisateur en lecture seule
+        #create_user_table(conn,cursor)
 
         #////////////////////////////////////
         #       Programme principal

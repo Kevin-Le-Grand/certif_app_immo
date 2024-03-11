@@ -133,3 +133,27 @@ class DataBaseV2():
         except Exception as e:
             print(f"Erreur : {e}")
             print("Échec de la création de la nouvelle colonne.")
+
+    def create_readonly_user(self, username, password):
+        try:
+            with self.connection as conn:
+                result = conn.execute(db.text(f"SELECT 1 FROM mysql.user WHERE user='{username}'"))
+                if result.fetchone() is None:
+                    conn.execute(db.text(f"CREATE USER '{username}'@'%' IDENTIFIED BY '{password}'"))
+                    conn.execute(db.text(f"GRANT SELECT ON *.* TO '{username}'@'%'"))
+                    print(f"Utilisateur en lecture seule '{username}' créé avec succès.")
+                else:
+                    print(f"L'utilisateur '{username}' existe déjà.")
+        except Exception as e:
+            print(f"Erreur lors de la création de l'utilisateur en lecture seule '{username}': {e}")
+
+    def insert_table_user(self, username, table):
+        if table not in self.table:
+            print(f"Erreur: La table '{table}' n'existe pas dans la base de données.")
+            return
+        try:
+            with self.engine.connect() as conn:
+                conn.execute(db.text(f"GRANT INSERT ON {table} TO '{username}'@'%'"))
+            print(f"'{username}' a désormais l'autorisation d'insérer des données dans la table {table}.")
+        except Exception as e:
+            print(f"Erreur lors de l'octroi à '{username}' d'insérer des données dans la table {table}: {e}")
