@@ -1,6 +1,7 @@
 import streamlit as st
 from functions import *
 from pages import *
+import webbrowser
 
 #//////////////////////////////////////////////////////////////////////////////
 #                          Main
@@ -22,6 +23,9 @@ def main():
         st.sidebar.markdown("""<div style="display: flex; justify-content: center; align-items: center;">
                             <img src="https://raw.githubusercontent.com/rastakoer/certif_app_immo/application/app/Logo.png" alt="Logo" width="200">
                             </div>""", unsafe_allow_html=True)
+        
+        if st.button("Grafana"):
+            webbrowser.open_new_tab("https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63")
 
         # État du formulaire False => formulaire non validé
         st.session_state.valid_formulaire=False
@@ -55,7 +59,6 @@ def main():
             
         # Affichage de la page d'accueil
         else:
-            st.title("Page d'accueil en construction...")
             accueil()
 
 
