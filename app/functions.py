@@ -223,31 +223,30 @@ def formulaire(cursor):
 #//////////////////////////////////////////////////////////////////////////////
 #                    Affichage d'un tableau de statistiques
 #//////////////////////////////////////////////////////////////////////////////
-def affichage_stats(data : pd.DataFrame,
-                    type_bien : str) -> None:
+def affichage_stats(data : pd.DataFrame) -> None:
     """
     Fonction permettant de formater les données d'un dataframe puis de l'afficher
      dans streamlit.
 
     Args:
     - data (pd.DataFrame) : dataframe de données 
-    - type_bien (str) : type de bien (Maison ou Appartement)
+    
     Return : None
     """
     #Affichage du dataframe
-    df = df.rename(columns={'m2avg': 'Prix moyen du m²',
+    data = data.rename(columns={'m2avg': 'Prix moyen du m²',
                             'avgM': 'Montant moyen',
                             'minM': 'Montant minimum',
                             'maxM': 'Montant maximum'})
     
     # Formatage des colonnes du dataframe
-    df = df.astype(int)
-    df = df.astype(str)
+    data = data.astype(int)
+    data = data.astype(str)
 
     # Remplacement des virgules par un espace et ajout du symbole "€"
-    df = df.applymap(lambda x: x.replace(',', ' ').strip() + ' €')
+    data = data.applymap(lambda x: x.replace(',', ' ').strip() + ' €')
 
-    st.dataframe(df,hide_index=True)
+    st.dataframe(data,hide_index=True)
     return
 
 #//////////////////////////////////////////////////////////////////////////////

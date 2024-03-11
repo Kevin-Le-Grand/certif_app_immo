@@ -49,11 +49,12 @@ def stat_region(region : str) ->None:
                 WHERE NAME_TYPE_BIEN='{i}' 
                     AND Name_region='{region}';"""
         df = pd.read_sql(con=engine.connect(), sql=text(query))
+
         if i =="Maison" :
             st.write("Les données statistiques pour une maison sont :")
         else :
             st.write("Les données statistiques pour un appartement sont :")
-        affichage_stats(df,i)
+        affichage_stats(df)
 
 
 #//////////////////////////////////////////////////////////////////////////////
@@ -125,7 +126,7 @@ def stat_commune(commune : str ) ->None:
                 st.write("Les données statistiques pour une maison sont :")
             else :
                 st.write("Les données statistiques pour un appartement sont :")
-            affichage_stats(df,i)
+            affichage_stats(df)
         else :
             if i =="Maison" :
                 st.write("Il n'y a pas eu de vente de maison :")
@@ -177,7 +178,7 @@ def formulaire_valide(cursor):
             st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour une maison sont :")
         else :
             st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour un appartement sont :")
-        affichage_stats(df,st.session_state.type_de_bien)
+        affichage_stats(df)
         st.subheader(f"Voici les {st.session_state.type_de_bien}s vendus dans la commune de {st.session_state.commune}")
 
         # Affichage des ventes réalisées dans la commune
