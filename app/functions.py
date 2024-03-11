@@ -223,20 +223,17 @@ def formulaire(cursor):
 #//////////////////////////////////////////////////////////////////////////////
 #                    Affichage d'un tableau de statistiques
 #//////////////////////////////////////////////////////////////////////////////
-def affichage_stats(data : pd.DataFrame) -> None:
+def affichage_stats(data : pd.DataFrame,
+                    type_bien : str) -> None:
     """
     Fonction permettant de formater les données d'un dataframe puis de l'afficher
      dans streamlit.
 
     Args:
     - data (pd.DataFrame) : dataframe de données 
-
+    - type_bien (str) : type de bien (Maison ou Appartement)
     Return : None
     """
-    if st.session_state.type_de_bien == "Maison":
-        st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour une maison sont :")
-    else :
-        st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour un appartement sont :")
     #Affichage du dataframe
     df = df.rename(columns={'m2avg': 'Prix moyen du m²',
                             'avgM': 'Montant moyen',
