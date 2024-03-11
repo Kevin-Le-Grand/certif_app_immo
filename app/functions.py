@@ -220,9 +220,41 @@ def formulaire(cursor):
         st.write("Veuillez choisir une région")
     return
 
+#//////////////////////////////////////////////////////////////////////////////
+#                    Affichage d'un tableau de statistiques
+#//////////////////////////////////////////////////////////////////////////////
+def affichage_stats(data : pd.DataFrame) -> None:
+    """
+    Fonction permettant de formater les données d'un dataframe puis de l'afficher
+     dans streamlit.
+
+    Args:
+    - data (pd.DataFrame) : dataframe de données 
+
+    Return : None
+    """
+    if st.session_state.type_de_bien == "Maison":
+        st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour une maison sont :")
+    else :
+        st.subheader(f"Statistiques sur la commune de {st.session_state.commune}  pour un appartement sont :")
+    #Affichage du dataframe
+    df = df.rename(columns={'m2avg': 'Prix moyen du m²',
+                            'avgM': 'Montant moyen',
+                            'minM': 'Montant minimum',
+                            'maxM': 'Montant maximum'})
+    
+    # Formatage des colonnes du dataframe
+    df = df.astype(int)
+    df = df.astype(str)
+
+    # Remplacement des virgules par un espace et ajout du symbole "€"
+    df = df.applymap(lambda x: x.replace(',', ' ').strip() + ' €')
+
+    st.dataframe(df,hide_index=True)
+    return
 
 #//////////////////////////////////////////////////////////////////////////////
-#                          Création de la carte interactive
+#                       Création de la carte interactive
 #//////////////////////////////////////////////////////////////////////////////
 def affichage_ventes_proximite(commune : list, cursor) -> str:
     """
@@ -336,7 +368,6 @@ def log_grafana() -> None:
                     nb_piece=f"{st.session_state.nb_pieces}",
                     user=f"{st.session_state.username}",
                     pred=float(st.session_state.pred))
-    st.write("Les données statistiques ont bien été envoyées.")
     return
 
 #//////////////////////////////////////////////////////////////////////////////
