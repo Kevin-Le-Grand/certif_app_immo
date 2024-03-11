@@ -1,7 +1,6 @@
 import streamlit as st
 from functions import *
 from pages import *
-import webbrowser
 
 #//////////////////////////////////////////////////////////////////////////////
 #                          Main
@@ -25,7 +24,9 @@ def main():
                             </div>""", unsafe_allow_html=True)
         
         if st.button("Grafana"):
-            webbrowser.open_new_tab("https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63")
+            st.empty()
+            st.sidebar.markdown('<iframe src="https://kevinlegrand.grafana.net/public-dashboards/cde8ec56de054eb295d3f68e0039aa63" width="100%" height="100%"></iframe>', unsafe_allow_html=True)
+            
 
         # État du formulaire False => formulaire non validé
         st.session_state.valid_formulaire=False
