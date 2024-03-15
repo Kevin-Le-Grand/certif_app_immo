@@ -17,6 +17,7 @@
 ## Méthodologie 
 #### Si vous avez cloné le projet, vous devez :
 - Commencer par réaliser les méthodologie des branches datagouv puis mlflow.
+- Créer un environnement sur la branche puis installer les dépendances à l'aide du requirements.Txt
 - Configurer les variables d'environnement sur Github et Heroku.
 - Changer l'adresse du RUN pour cloner le repository dans le dockerfile.
 - Changer l'adresse du tracking de mlflow ligne 55 du fichier functions.py
