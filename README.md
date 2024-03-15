@@ -1,5 +1,5 @@
 # Vidéo de présentation
-<iframe width="560" height="315" src="https://www.youtube.com/embed/gA9sctlv6GY?si=UvYs2yMet0q5ChQv" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![Présentation sur youtube](https://raw.githubusercontent.com/rastakoer/certif_app_immo/main/Capture_youtube.PNG)](https://www.youtube.com/watch?v=gA9sctlv6GY)
 
 # Schéma d'architecture de l'application
 ![Schéma de l'architecture de l'application](https://raw.githubusercontent.com/rastakoer/certif_app_immo/main/schema_application.PNG)
